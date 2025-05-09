@@ -1,0 +1,16 @@
+# frontend
+node_modules/
+.expo/
+.expo-shared/
+dist/
+build/
+.env
+
+# log dosyaları
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# genel
+*.log
+.DS_Store
