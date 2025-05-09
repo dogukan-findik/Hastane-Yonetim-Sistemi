@@ -1,20 +1,22 @@
 import {
-    PersonAdd as PersonAddIcon,
-    Visibility,
-    VisibilityOff,
+  AccountCircle,
+  LocalHospital,
+  Person,
+  Visibility,
+  VisibilityOff,
 } from '@mui/icons-material';
 import {
-    Alert,
-    Box,
-    Button,
-    Container,
-    Grid,
-    IconButton,
-    InputAdornment,
-    Link,
-    Paper,
-    TextField,
-    Typography,
+  Box,
+  Button,
+  Container,
+  IconButton,
+  InputAdornment,
+  Link,
+  Paper,
+  TextField,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
 } from '@mui/material';
 import React, { useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
@@ -22,15 +24,14 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 function Register() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
+    userType: 'patient', // Varsayılan olarak hasta
   });
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -40,50 +41,36 @@ function Register() {
     }));
   };
 
-  const validateEmail = (email) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-  };
-
-  const validatePassword = (password) => {
-    // En az 6 karakter, 1 büyük harf, 1 küçük harf ve 1 rakam
-    const re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{6,}$/;
-    return re.test(password);
+  const handleUserTypeChange = (event, newUserType) => {
+    if (newUserType !== null) {
+      setFormData(prev => ({
+        ...prev,
+        userType: newUserType
+      }));
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
-    setSuccess('');
-
-    // Validasyonlar
-    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
-      setError('Lütfen tüm alanları doldurun');
-      return;
-    }
-
-    if (!validateEmail(formData.email)) {
-      setError('Geçerli bir e-posta adresi girin');
-      return;
-    }
-
-    if (!validatePassword(formData.password)) {
-      setError('Şifre en az 6 karakter uzunluğunda olmalı ve en az 1 büyük harf, 1 küçük harf ve 1 rakam içermelidir');
-      return;
-    }
 
     if (formData.password !== formData.confirmPassword) {
       setError('Şifreler eşleşmiyor');
       return;
     }
 
-    // Başarılı kayıt
-    setSuccess('Kayıt başarılı! Giriş sayfasına yönlendiriliyorsunuz...');
-    
-    // 2 saniye sonra giriş sayfasına yönlendir
-    setTimeout(() => {
-      navigate('/login');
-    }, 2000);
+    if (formData.name && formData.email && formData.password) {
+      // Kullanıcı bilgilerini localStorage'a kaydet
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('userInfo', JSON.stringify({
+        name: formData.name,
+        email: formData.email,
+        userType: formData.userType
+      }));
+      navigate('/');
+    } else {
+      setError('Lütfen tüm alanları doldurun');
+    }
   };
 
   return (
@@ -105,45 +92,92 @@ function Register() {
           Kayıt Ol
         </Typography>
 
-        {error && (
-          <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
-            {error}
-          </Alert>
-        )}
+        <ToggleButtonGroup
+          value={formData.userType}
+          exclusive
+          onChange={handleUserTypeChange}
+          aria-label="user type"
+          sx={{ mb: 3 }}
+        >
+          <ToggleButton 
+            value="patient" 
+            aria-label="patient"
+            sx={{
+              backgroundColor: '#ffebee',
+              color: '#d32f2f',
+              '&.Mui-selected': {
+                backgroundColor: '#ef9a9a',
+                color: '#b71c1c',
+                '&:hover': {
+                  backgroundColor: '#e57373',
+                }
+              },
+              '&:hover': {
+                backgroundColor: '#ffcdd2',
+              }
+            }}
+          >
+            <Person sx={{ mr: 1 }} /> Hasta
+          </ToggleButton>
+          <ToggleButton 
+            value="doctor" 
+            aria-label="doctor"
+            sx={{
+              backgroundColor: '#c8e6c9',
+              color: '#1b5e20',
+              '&.Mui-selected': {
+                backgroundColor: '#81c784',
+                color: '#1b5e20',
+                '&:hover': {
+                  backgroundColor: '#66bb6a',
+                }
+              },
+              '&:hover': {
+                backgroundColor: '#a5d6a7',
+              }
+            }}
+          >
+            <LocalHospital sx={{ mr: 1 }} /> Doktor
+          </ToggleButton>
+        </ToggleButtonGroup>
 
-        {success && (
-          <Alert severity="success" sx={{ width: '100%', mb: 2 }}>
-            {success}
-          </Alert>
+        {error && (
+          <Typography color="error" sx={{ mb: 2 }}>
+            {error}
+          </Typography>
         )}
 
         <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                required
-                fullWidth
-                id="name"
-                label="Ad"
-                name="name"
-                autoComplete="given-name"
-                value={formData.name}
-                onChange={handleChange}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                required
-                fullWidth
-                id="email"
-                label="E-posta Adresi"
-                name="email"
-                autoComplete="email"
-                value={formData.email}
-                onChange={handleChange}
-              />
-            </Grid>
-          </Grid>
+          <TextField
+            margin="normal"
+            required
+            fullWidth
+            id="name"
+            label="Ad Soyad"
+            name="name"
+            autoComplete="name"
+            autoFocus
+            value={formData.name}
+            onChange={handleChange}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <AccountCircle />
+                </InputAdornment>
+              ),
+            }}
+          />
+          <TextField
+            margin="normal"
+            required
+            fullWidth
+            id="email"
+            label="E-posta Adresi"
+            name="email"
+            autoComplete="email"
+            value={formData.email}
+            onChange={handleChange}
+          />
           <TextField
             margin="normal"
             required
@@ -175,26 +209,11 @@ function Register() {
             fullWidth
             name="confirmPassword"
             label="Şifre Tekrar"
-            type={showConfirmPassword ? 'text' : 'password'}
+            type={showPassword ? 'text' : 'password'}
             id="confirmPassword"
-            autoComplete="new-password"
             value={formData.confirmPassword}
             onChange={handleChange}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle password visibility"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    edge="end"
-                  >
-                    {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
           />
-
           <Button
             type="submit"
             fullWidth
@@ -203,15 +222,11 @@ function Register() {
               mt: 3,
               mb: 2,
               bgcolor: '#1a237e',
-              '&:hover': {
-                bgcolor: '#000051',
-              },
+              '&:hover': { bgcolor: '#000051' },
             }}
-            startIcon={<PersonAddIcon />}
           >
             Kayıt Ol
           </Button>
-
           <Box sx={{ textAlign: 'center' }}>
             <Link
               component={RouterLink}

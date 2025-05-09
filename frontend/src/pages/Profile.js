@@ -1,24 +1,24 @@
 import {
-    AccountCircle,
-    Cancel as CancelIcon,
-    Edit as EditIcon,
-    Email as EmailIcon,
-    LocationOn as LocationIcon,
-    Phone as PhoneIcon,
-    Save as SaveIcon,
-    Work as WorkIcon,
+  AccountCircle,
+  Cancel as CancelIcon,
+  Edit as EditIcon,
+  Email as EmailIcon,
+  LocationOn as LocationIcon,
+  Phone as PhoneIcon,
+  Save as SaveIcon,
+  Work as WorkIcon,
 } from '@mui/icons-material';
 import {
-    Avatar,
-    Box,
-    Button,
-    Card,
-    CardContent,
-    Container,
-    Divider,
-    Grid,
-    TextField,
-    Typography
+  Avatar,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Container,
+  Divider,
+  Grid,
+  TextField,
+  Typography
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 
@@ -27,7 +27,6 @@ function Profile() {
   const [userInfo, setUserInfo] = useState({
     name: '',
     email: '',
-    role: '',
     phone: '',
     address: '',
     department: '',
@@ -58,6 +57,7 @@ function Profile() {
 
   const handleSave = () => {
     localStorage.setItem('userInfo', JSON.stringify(userInfo));
+    window.dispatchEvent(new Event('storage'));
     setIsEditing(false);
   };
 
@@ -88,9 +88,6 @@ function Profile() {
               </Avatar>
               <Typography variant="h5" gutterBottom>
                 {userInfo.name}
-              </Typography>
-              <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-                {userInfo.role}
               </Typography>
               <Box sx={{ mt: 2 }}>
                 <Button

@@ -1,10 +1,14 @@
 import {
   AccountCircle,
+  Assessment,
+  Description,
   EventNote,
   LocalHospital,
   Logout,
+  Notifications,
   People,
   Settings,
+  Upload,
 } from '@mui/icons-material';
 import {
   AppBar,
@@ -21,33 +25,40 @@ import {
 import React, { useEffect, useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
-function Navbar({ isDarkMode }) {
-  const navigate = useNavigate();
+function Navbar({ isDarkMode, isLoggedIn }) {
   const [anchorEl, setAnchorEl] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    const loginStatus = localStorage.getItem('isLoggedIn');
+  // localStorage'dan userInfo'yu oku
+  const readUserInfo = () => {
     const storedUserInfo = localStorage.getItem('userInfo');
-    
-    if (loginStatus === 'true' && storedUserInfo) {
-      setIsLoggedIn(true);
+    if (storedUserInfo) {
       setUserInfo(JSON.parse(storedUserInfo));
+    } else {
+      setUserInfo(null);
     }
-  }, []);
+  };
+
+  // İlk yükleme ve isLoggedIn değiştiğinde userInfo'yu güncelle
+  useEffect(() => {
+    readUserInfo();
+  }, [isLoggedIn]);
 
   // localStorage değişikliklerini dinle
   useEffect(() => {
     const handleStorageChange = () => {
-      const storedUserInfo = localStorage.getItem('userInfo');
-      if (storedUserInfo) {
-        setUserInfo(JSON.parse(storedUserInfo));
-      }
+      readUserInfo();
     };
 
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    // Aynı sekmedeki değişiklikleri de dinle
+    window.addEventListener('localStorageChange', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('localStorageChange', handleStorageChange);
+    };
   }, []);
 
   const handleMenu = (event) => {
@@ -59,12 +70,59 @@ function Navbar({ isDarkMode }) {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('userInfo');
-    setIsLoggedIn(false);
+    localStorage.removeItem('isLoggedIn');
     setUserInfo(null);
     handleClose();
     navigate('/login');
+  };
+
+  const handleLogoClick = (e) => {
+    if (!isLoggedIn) {
+      e.preventDefault();
+      navigate('/login');
+    }
+  };
+
+  // Hasta menü öğeleri
+  const patientMenuItems = [
+    { text: 'Doktorlar', icon: <LocalHospital />, path: '/doctors' },
+    { text: 'Randevularım', icon: <EventNote />, path: '/appointments' },
+    { text: 'Raporlarım', icon: <Description />, path: '/reports' },
+    { text: 'Dosya Yükle', icon: <Upload />, path: '/upload' },
+  ];
+
+  // Doktor menü öğeleri
+  const doctorMenuItems = [
+    { text: 'Hastalarım', icon: <People />, path: '/patients' },
+    { text: 'Randevular', icon: <EventNote />, path: '/appointments' },
+    { text: 'Raporlar', icon: <Description />, path: '/reports' },
+    { text: 'Bildirimler', icon: <Notifications />, path: '/notifications' },
+  ];
+
+  // Yönetici menü öğeleri
+  const adminMenuItems = [
+    { text: 'Hastalar', icon: <People />, path: '/patients' },
+    { text: 'Doktorlar', icon: <LocalHospital />, path: '/doctors' },
+    { text: 'Randevular', icon: <EventNote />, path: '/appointments' },
+    { text: 'Raporlar', icon: <Assessment />, path: '/reports' },
+    { text: 'Bildirimler', icon: <Notifications />, path: '/notifications' },
+  ];
+
+  // Kullanıcı tipine göre menü öğelerini seç
+  const getMenuItems = () => {
+    if (!userInfo || !isLoggedIn) return [];
+    
+    switch (userInfo.userType) {
+      case 'patient':
+        return patientMenuItems;
+      case 'doctor':
+        return doctorMenuItems;
+      case 'admin':
+        return adminMenuItems;
+      default:
+        return [];
+    }
   };
 
   return (
@@ -79,12 +137,14 @@ function Navbar({ isDarkMode }) {
         <Box
           component={RouterLink}
           to="/"
+          onClick={handleLogoClick}
           sx={{
             display: 'flex',
             alignItems: 'center',
             textDecoration: 'none',
             color: 'white',
             mr: 4,
+            cursor: 'pointer',
           }}
         >
           <LocalHospital sx={{ fontSize: 40, mr: 1 }} />
@@ -101,7 +161,7 @@ function Navbar({ isDarkMode }) {
           </Typography>
         </Box>
 
-        {isLoggedIn && (
+        {isLoggedIn && userInfo && (
           <Box sx={{ 
             display: 'flex', 
             alignItems: 'center', 
@@ -109,53 +169,30 @@ function Navbar({ isDarkMode }) {
             flexGrow: 1,
             justifyContent: 'center',
           }}>
-            <Button
-              component={RouterLink}
-              to="/patients"
-              color="inherit"
-              startIcon={<People />}
-              sx={{
-                '&:hover': {
-                  color: '#40e0d0',
-                },
-              }}
-            >
-              Hastalar
-            </Button>
-            <Button
-              component={RouterLink}
-              to="/doctors"
-              color="inherit"
-              startIcon={<LocalHospital />}
-              sx={{
-                '&:hover': {
-                  color: '#40e0d0',
-                },
-              }}
-            >
-              Doktorlar
-            </Button>
-            <Button
-              component={RouterLink}
-              to="/appointments"
-              color="inherit"
-              startIcon={<EventNote />}
-              sx={{
-                '&:hover': {
-                  color: '#40e0d0',
-                },
-              }}
-            >
-              Randevular
-            </Button>
+            {getMenuItems().map((item, index) => (
+              <Button
+                key={index}
+                component={RouterLink}
+                to={item.path}
+                color="inherit"
+                startIcon={item.icon}
+                sx={{
+                  '&:hover': {
+                    color: '#40e0d0',
+                  },
+                }}
+              >
+                {item.text}
+              </Button>
+            ))}
           </Box>
         )}
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          {isLoggedIn ? (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, ml: 'auto' }}>
+          {isLoggedIn && userInfo ? (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography variant="body2" sx={{ color: 'white' }}>
-                {userInfo?.name}
+                {userInfo.email}
               </Typography>
               <IconButton
                 size="large"
@@ -166,7 +203,7 @@ function Navbar({ isDarkMode }) {
                 color="inherit"
               >
                 <Avatar sx={{ width: 32, height: 32, bgcolor: '#40e0d0' }}>
-                  {userInfo?.name?.charAt(0)}
+                  {userInfo.email?.charAt(0)}
                 </Avatar>
               </IconButton>
               <Menu
@@ -186,13 +223,11 @@ function Navbar({ isDarkMode }) {
               >
                 <Box sx={{ px: 2, py: 1 }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                    {userInfo?.name}
+                    {userInfo.email}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {userInfo?.email}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {userInfo?.role}
+                    {userInfo.userType === 'patient' ? 'Hasta' : 
+                     userInfo.userType === 'doctor' ? 'Doktor' : 'Yönetici'}
                   </Typography>
                 </Box>
                 <Divider />
@@ -203,8 +238,8 @@ function Navbar({ isDarkMode }) {
                   <Settings sx={{ mr: 1 }} /> Ayarlar
                 </MenuItem>
                 <Divider />
-                <MenuItem onClick={handleLogout}>
-                  <Logout sx={{ mr: 1 }} /> Çıkış Yap
+                <MenuItem onClick={handleLogout} sx={{ color: '#d32f2f' }}>
+                  <Logout sx={{ mr: 1, color: '#d32f2f' }} /> Çıkış Yap
                 </MenuItem>
               </Menu>
             </Box>

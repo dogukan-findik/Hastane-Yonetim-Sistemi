@@ -1,7 +1,10 @@
 import {
+    AdminPanelSettings,
+    LocalHospital,
     Login as LoginIcon,
+    Person,
     Visibility,
-    VisibilityOff,
+    VisibilityOff
 } from '@mui/icons-material';
 import {
     Alert,
@@ -13,18 +16,20 @@ import {
     Link,
     Paper,
     TextField,
+    ToggleButton,
+    ToggleButtonGroup,
     Typography,
 } from '@mui/material';
 import React, { useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
-function Login() {
+function Login({ updateLoginStatus }) {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
     email: '',
     password: '',
+    userType: 'patient', // Varsayılan olarak hasta
   });
   const [error, setError] = useState('');
 
@@ -36,17 +41,28 @@ function Login() {
     }));
   };
 
+  const handleUserTypeChange = (event, newUserType) => {
+    if (newUserType !== null) {
+      setFormData(prev => ({
+        ...prev,
+        userType: newUserType
+      }));
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    setError('');
-
-    if (formData.email && formData.password && formData.name) {
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('userInfo', JSON.stringify({
-        name: formData.name,
+    if (formData.email && formData.password) {
+      // Herhangi bir email ve şifre ile giriş yapılabilir
+      const userInfo = {
         email: formData.email,
-        role: 'Doktor',
-      }));
+        userType: formData.userType, // 'patient', 'doctor' veya 'admin'
+      };
+      localStorage.setItem('userInfo', JSON.stringify(userInfo));
+      localStorage.setItem('isLoggedIn', 'true');
+      // localStorage değişikliğini tetikle
+      window.dispatchEvent(new Event('localStorageChange'));
+      updateLoginStatus(true);
       navigate('/');
     } else {
       setError('Lütfen tüm alanları doldurun');
@@ -72,6 +88,75 @@ function Login() {
           Giriş Yap
         </Typography>
 
+        <ToggleButtonGroup
+          value={formData.userType}
+          exclusive
+          onChange={handleUserTypeChange}
+          aria-label="user type"
+          sx={{ mb: 3 }}
+        >
+          <ToggleButton 
+            value="patient" 
+            aria-label="patient"
+            sx={{
+              backgroundColor: '#ffebee',
+              color: '#d32f2f',
+              '&.Mui-selected': {
+                backgroundColor: '#ef9a9a',
+                color: '#b71c1c',
+                '&:hover': {
+                  backgroundColor: '#e57373',
+                }
+              },
+              '&:hover': {
+                backgroundColor: '#ffcdd2',
+              }
+            }}
+          >
+            <Person sx={{ mr: 1 }} /> Hasta
+          </ToggleButton>
+          <ToggleButton 
+            value="doctor" 
+            aria-label="doctor"
+            sx={{
+              backgroundColor: '#c8e6c9',
+              color: '#1b5e20',
+              '&.Mui-selected': {
+                backgroundColor: '#81c784',
+                color: '#1b5e20',
+                '&:hover': {
+                  backgroundColor: '#66bb6a',
+                }
+              },
+              '&:hover': {
+                backgroundColor: '#a5d6a7',
+              }
+            }}
+          >
+            <LocalHospital sx={{ mr: 1 }} /> Doktor
+          </ToggleButton>
+          <ToggleButton 
+            value="admin" 
+            aria-label="admin"
+            sx={{
+              backgroundColor: '#e3f2fd',
+              color: '#1565c0',
+              '&.Mui-selected': {
+                backgroundColor: '#64b5f6',
+                color: '#0d47a1',
+                '&:hover': {
+                  backgroundColor: '#42a5f5',
+                }
+              },
+              '&:hover': {
+                backgroundColor: '#bbdefb',
+              }
+            }}
+          >
+            <AdminPanelSettings sx={{ mr: 1 }} /> Yönetici
+          </ToggleButton>
+        </ToggleButtonGroup>
+
         {error && (
           <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
             {error}
@@ -83,22 +168,11 @@ function Login() {
             margin="normal"
             required
             fullWidth
-            id="name"
-            label="Ad Soyad"
-            name="name"
-            autoComplete="name"
-            autoFocus
-            value={formData.name}
-            onChange={handleChange}
-          />
-          <TextField
-            margin="normal"
-            required
-            fullWidth
             id="email"
             label="E-posta Adresi"
             name="email"
             autoComplete="email"
+            autoFocus
             value={formData.email}
             onChange={handleChange}
           />
