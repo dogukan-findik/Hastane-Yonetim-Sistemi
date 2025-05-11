@@ -1,26 +1,26 @@
 import {
-  AccountCircle,
-  Assessment,
-  Description,
-  EventNote,
-  LocalHospital,
-  Logout,
-  Notifications,
-  People,
-  Settings,
-  Upload,
+    AccountCircle,
+    Assessment,
+    Description,
+    EventNote,
+    LocalHospital,
+    Logout,
+    Notifications,
+    People,
+    Settings,
+    Upload,
 } from '@mui/icons-material';
 import {
-  AppBar,
-  Avatar,
-  Box,
-  Button,
-  Divider,
-  IconButton,
-  Menu,
-  MenuItem,
-  Toolbar,
-  Typography,
+    AppBar,
+    Avatar,
+    Box,
+    Button,
+    Divider,
+    IconButton,
+    Menu,
+    MenuItem,
+    Toolbar,
+    Typography,
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
@@ -191,8 +191,8 @@ function Navbar({ isDarkMode, isLoggedIn }) {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, ml: 'auto' }}>
           {isLoggedIn && userInfo ? (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography variant="body2" sx={{ color: 'white' }}>
-                {userInfo.email}
+              <Typography variant="body2" sx={{ color: 'white', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 1 }}>
+                {userInfo.name ? userInfo.name : userInfo.email}
               </Typography>
               <IconButton
                 size="large"
@@ -203,7 +203,7 @@ function Navbar({ isDarkMode, isLoggedIn }) {
                 color="inherit"
               >
                 <Avatar sx={{ width: 32, height: 32, bgcolor: '#40e0d0' }}>
-                  {userInfo.email?.charAt(0)}
+                  {userInfo.name ? userInfo.name.charAt(0) : userInfo.email?.charAt(0)}
                 </Avatar>
               </IconButton>
               <Menu
@@ -223,11 +223,7 @@ function Navbar({ isDarkMode, isLoggedIn }) {
               >
                 <Box sx={{ px: 2, py: 1 }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                    {userInfo.email}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {userInfo.userType === 'patient' ? 'Hasta' : 
-                     userInfo.userType === 'doctor' ? 'Doktor' : 'Yönetici'}
+                    {userInfo.name ? userInfo.name : userInfo.email}
                   </Typography>
                 </Box>
                 <Divider />
