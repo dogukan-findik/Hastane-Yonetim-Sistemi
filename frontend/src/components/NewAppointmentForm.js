@@ -1,18 +1,19 @@
 import {
-    Button,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    FormControl,
-    Grid,
-    InputLabel,
-    MenuItem,
-    Select,
-    TextField,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  Grid,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
 } from '@mui/material';
-import { DatePicker, LocalizationProvider, TimePicker } from '@mui/x-date-pickers';
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { addMonths, endOfMonth, isBefore, isWeekend } from 'date-fns';
 import trLocale from 'date-fns/locale/tr';
 import React, { useState } from 'react';
 
@@ -45,6 +46,31 @@ const doctors = {
   ],
   // Diğer bölümler için benzer şekilde doktorlar eklenebilir
 };
+
+function getNextMonthEnd() {
+  const today = new Date();
+  return endOfMonth(addMonths(today, 1));
+}
+
+function generateTimeSlots() {
+  const slots = [];
+  let hour = 9;
+  let minute = 0;
+  while (hour < 17) {
+    const h = hour.toString().padStart(2, '0');
+    const m = minute.toString().padStart(2, '0');
+    slots.push(`${h}:${m}`);
+    minute += 10;
+    if (minute === 60) {
+      minute = 0;
+      hour++;
+    }
+  }
+  // 16:50 son slot
+  return slots;
+}
+
+const timeSlots = generateTimeSlots();
 
 function NewAppointmentForm({ open, onClose, onSubmit }) {
   const [selectedDepartment, setSelectedDepartment] = useState('');
@@ -116,19 +142,32 @@ function NewAppointmentForm({ open, onClose, onSubmit }) {
                 onChange={setSelectedDate}
                 renderInput={(params) => <TextField {...params} fullWidth />}
                 minDate={new Date()}
+                maxDate={getNextMonthEnd()}
+                shouldDisableDate={(date) => {
+                  const today = new Date();
+                  // Bugünden önceki günler ve hafta sonları devre dışı
+                  return isBefore(date, today) || isWeekend(date);
+                }}
               />
             </LocalizationProvider>
           </Grid>
 
           <Grid item xs={12} sm={6}>
-            <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={trLocale}>
-              <TimePicker
+            <FormControl fullWidth>
+              <InputLabel>Saat</InputLabel>
+              <Select
+                value={selectedTime || ''}
                 label="Saat"
-                value={selectedTime}
-                onChange={setSelectedTime}
-                renderInput={(params) => <TextField {...params} fullWidth />}
-              />
-            </LocalizationProvider>
+                onChange={(e) => setSelectedTime(e.target.value)}
+                disabled={!selectedDate}
+              >
+                {timeSlots.map((slot) => (
+                  <MenuItem key={slot} value={slot}>
+                    {slot}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Grid>
         </Grid>
       </DialogContent>
