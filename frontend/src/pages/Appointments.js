@@ -1,4 +1,6 @@
 import { Add as AddIcon } from '@mui/icons-material';
+import { Link as RouterLink } from 'react-router-dom';
+
 import {
   Box,
   Button,
@@ -13,7 +15,6 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import React from 'react';
 
 function Appointments() {
   // Örnek randevu verileri
@@ -71,13 +72,15 @@ function Appointments() {
         <Typography variant="h4" component="h1">
           Randevular
         </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-        >
-          Yeni Randevu
-        </Button>
+          <Button
+            component={RouterLink}
+            to="/appointments/new"
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+          >
+            Yeni Randevu
+          </Button>
       </Box>
       <TableContainer component={Paper}>
         <Table>

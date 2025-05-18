@@ -1,8 +1,9 @@
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import NewAppointmentForm from './components/NewAppointmentForm';
 import Appointments from './pages/Appointments';
 import Dashboard from './pages/Dashboard';
 import Doctors from './pages/Doctors';
@@ -19,15 +20,23 @@ import Upload from './pages/Upload';
 function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [appointments, setAppointments] = useState([]);
 
   useEffect(() => {
     const loginStatus = localStorage.getItem('isLoggedIn');
     setIsLoggedIn(loginStatus === 'true');
+    const savedAppointments = JSON.parse(localStorage.getItem('appointments')) || [];
+    setAppointments(savedAppointments);
   }, []);
 
-  // Login durumunu güncellemek için fonksiyon
   const updateLoginStatus = (status) => {
     setIsLoggedIn(status);
+  };
+
+  const handleAddAppointment = (appointmentData) => {
+    const newAppointments = [...appointments, appointmentData];
+    setAppointments(newAppointments);
+    localStorage.setItem('appointments', JSON.stringify(newAppointments));
   };
 
   const theme = useMemo(
@@ -54,7 +63,6 @@ function App() {
     setIsDarkMode(!isDarkMode);
   };
 
-  // Korumalı route bileşeni
   const ProtectedRoute = ({ children, allowedRoles }) => {
     if (!isLoggedIn) {
       return <Navigate to="/login" />;
@@ -91,7 +99,12 @@ function App() {
           } />
           <Route path="/appointments" element={
             <ProtectedRoute>
-              <Appointments />
+              <Appointments appointments={appointments} />
+            </ProtectedRoute>
+          } />
+          <Route path="/appointments/new" element={
+            <ProtectedRoute>
+              <NewAppointmentForm onSubmit={handleAddAppointment} />
             </ProtectedRoute>
           } />
           <Route path="/reports" element={
@@ -128,4 +141,4 @@ function App() {
   );
 }
 
-export default App; 
+export default App;

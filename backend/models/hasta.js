@@ -1,7 +1,7 @@
 // models/Patient.js
 const mongoose = require("mongoose");
 
-const patientSchema = new mongoose.Schema({
+const hastaSchema = new mongoose.Schema({
     HastaID: {
         type: Number,
         required: true,
@@ -21,15 +21,22 @@ const patientSchema = new mongoose.Schema({
     },
     Cinsiyet: {
         type: String,
-        enum: ["Erkek", "Kadın"],
         required: true
     },
     TelefonNumarasi: {
         type: String,
-        required: true,
-        match: /^[0-9]{10,11}$/
+        required: true
     },
     Adres: {
+        type: String,
+        required: true
+    },
+    Email: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    Sifre: {
         type: String,
         required: true
     }
@@ -38,4 +45,4 @@ const patientSchema = new mongoose.Schema({
 });
 
 // Modeli export et
-module.exports = mongoose.model("Patient", patientSchema);
+module.exports = mongoose.model("Hasta", hastaSchema);
