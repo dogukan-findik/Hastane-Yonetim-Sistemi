@@ -20,15 +20,23 @@ import Upload from './pages/Upload';
 function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [appointments, setAppointments] = useState([]);
 
   useEffect(() => {
     const loginStatus = localStorage.getItem('isLoggedIn');
     setIsLoggedIn(loginStatus === 'true');
+    const savedAppointments = JSON.parse(localStorage.getItem('appointments')) || [];
+    setAppointments(savedAppointments);
   }, []);
 
-  // Login durumunu güncellemek için fonksiyon
   const updateLoginStatus = (status) => {
     setIsLoggedIn(status);
+  };
+
+  const handleAddAppointment = (appointmentData) => {
+    const newAppointments = [...appointments, appointmentData];
+    setAppointments(newAppointments);
+    localStorage.setItem('appointments', JSON.stringify(newAppointments));
   };
 
   const theme = useMemo(
@@ -55,7 +63,6 @@ function App() {
     setIsDarkMode(!isDarkMode);
   };
 
-  // Korumalı route bileşeni
   const ProtectedRoute = ({ children, allowedRoles }) => {
     if (!isLoggedIn) {
       return <Navigate to="/login" />;
@@ -92,18 +99,14 @@ function App() {
           } />
           <Route path="/appointments" element={
             <ProtectedRoute>
-              <Appointments />
+              <Appointments appointments={appointments} />
             </ProtectedRoute>
           } />
-<Route path="/appointments/new" element={
-  <ProtectedRoute>
-    <NewAppointmentForm
-      open={true}
-      onClose={() => console.log('Dialog kapatıldı')}
-      onSubmit={(data) => console.log('Randevu oluşturuldu:', data)}
-    />
-  </ProtectedRoute>
-} />
+          <Route path="/appointments/new" element={
+            <ProtectedRoute>
+              <NewAppointmentForm onSubmit={handleAddAppointment} />
+            </ProtectedRoute>
+          } />
           <Route path="/reports" element={
             <ProtectedRoute>
               <Reports />
@@ -138,4 +141,4 @@ function App() {
   );
 }
 
-export default App; 
+export default App;
