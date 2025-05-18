@@ -1,8 +1,9 @@
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import NewAppointmentForm from './components/NewAppointmentForm';
 import Appointments from './pages/Appointments';
 import Dashboard from './pages/Dashboard';
 import Doctors from './pages/Doctors';
@@ -94,6 +95,15 @@ function App() {
               <Appointments />
             </ProtectedRoute>
           } />
+<Route path="/appointments/new" element={
+  <ProtectedRoute>
+    <NewAppointmentForm
+      open={true}
+      onClose={() => console.log('Dialog kapatıldı')}
+      onSubmit={(data) => console.log('Randevu oluşturuldu:', data)}
+    />
+  </ProtectedRoute>
+} />
           <Route path="/reports" element={
             <ProtectedRoute>
               <Reports />

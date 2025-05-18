@@ -1,21 +1,24 @@
 import {
+  Alert,
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   FormControl,
-  Grid,
   InputLabel,
   MenuItem,
   Select,
+  Snackbar,
   TextField,
 } from '@mui/material';
+import Grid from '@mui/material/Grid';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { addMonths, endOfMonth, isBefore, isWeekend } from 'date-fns';
 import trLocale from 'date-fns/locale/tr';
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // Örnek bölümler ve doktorlar
 const departments = [
@@ -44,7 +47,6 @@ const doctors = {
     { id: 11, name: 'Dr. Burak Şahin' },
     { id: 12, name: 'Dr. Deniz Yıldız' },
   ],
-  // Diğer bölümler için benzer şekilde doktorlar eklenebilir
 };
 
 function getNextMonthEnd() {
@@ -66,7 +68,6 @@ function generateTimeSlots() {
       hour++;
     }
   }
-  // 16:50 son slot
   return slots;
 }
 
@@ -77,112 +78,139 @@ function NewAppointmentForm({ open, onClose, onSubmit }) {
   const [selectedDoctor, setSelectedDoctor] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = () => {
     if (selectedDepartment && selectedDoctor && selectedDate && selectedTime) {
-      onSubmit({
-        department: departments.find(d => d.id === selectedDepartment).name,
-        doctor: doctors[selectedDepartment].find(d => d.id === selectedDoctor).name,
+      const appointmentData = {
+        department: departments.find((d) => d.id === selectedDepartment).name,
+        doctor: doctors[selectedDepartment].find((d) => d.id === selectedDoctor).name,
         date: selectedDate,
         time: selectedTime,
-      });
-      onClose();
+      };
+      onSubmit(appointmentData); // Üst bileşene veriyi gönder
+      setSnackbarOpen(true); // "Randevu alındı" mesajını göster
+      setTimeout(() => {
+        onClose(); // Dialogu kapat
+        navigate('/appointments'); // Appointments sayfasına dön
+      }, 1500); // Mesaj göründükten 1.5 saniye sonra yönlendir
     }
   };
 
-  return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Yeni Randevu Oluştur</DialogTitle>
-      <DialogContent>
-        <Grid container spacing={2} sx={{ mt: 1 }}>
-          <Grid item xs={12}>
-            <FormControl fullWidth>
-              <InputLabel>Bölüm</InputLabel>
-              <Select
-                value={selectedDepartment}
-                label="Bölüm"
-                onChange={(e) => {
-                  setSelectedDepartment(e.target.value);
-                  setSelectedDoctor('');
-                }}
-              >
-                {departments.map((department) => (
-                  <MenuItem key={department.id} value={department.id}>
-                    {department.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
+  const handleClose = () => {
+    onClose(); // Dialogu kapat
+    navigate('/appointments'); // Appointments sayfasına dön
+  };
 
-          <Grid item xs={12}>
-            <FormControl fullWidth>
-              <InputLabel>Doktor</InputLabel>
-              <Select
-                value={selectedDoctor}
-                label="Doktor"
-                onChange={(e) => setSelectedDoctor(e.target.value)}
-                disabled={!selectedDepartment}
-              >
-                {selectedDepartment &&
-                  doctors[selectedDepartment].map((doctor) => (
-                    <MenuItem key={doctor.id} value={doctor.id}>
-                      {doctor.name}
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+  };
+
+  return (
+    <>
+      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+        <DialogTitle>Yeni Randevu Oluştur</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid size={{ xs: 12 }}>
+              <FormControl fullWidth>
+                <InputLabel>Bölüm</InputLabel>
+                <Select
+                  value={selectedDepartment}
+                  label="Bölüm"
+                  onChange={(e) => {
+                    setSelectedDepartment(e.target.value);
+                    setSelectedDoctor('');
+                  }}
+                >
+                  {departments.map((department) => (
+                    <MenuItem key={department.id} value={department.id}>
+                      {department.name}
                     </MenuItem>
                   ))}
-              </Select>
-            </FormControl>
-          </Grid>
+                </Select>
+              </FormControl>
+            </Grid>
 
-          <Grid item xs={12} sm={6}>
-            <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={trLocale}>
-              <DatePicker
-                label="Tarih"
-                value={selectedDate}
-                onChange={setSelectedDate}
-                renderInput={(params) => <TextField {...params} fullWidth />}
-                minDate={new Date()}
-                maxDate={getNextMonthEnd()}
-                shouldDisableDate={(date) => {
-                  const today = new Date();
-                  // Bugünden önceki günler ve hafta sonları devre dışı
-                  return isBefore(date, today) || isWeekend(date);
-                }}
-              />
-            </LocalizationProvider>
-          </Grid>
+            <Grid size={{ xs: 12 }}>
+              <FormControl fullWidth>
+                <InputLabel>Doktor</InputLabel>
+                <Select
+                  value={selectedDoctor}
+                  label="Doktor"
+                  onChange={(e) => setSelectedDoctor(e.target.value)}
+                  disabled={!selectedDepartment}
+                >
+                  {selectedDepartment &&
+                    doctors[selectedDepartment].map((doctor) => (
+                      <MenuItem key={doctor.id} value={doctor.id}>
+                        {doctor.name}
+                      </MenuItem>
+                    ))}
+                </Select>
+              </FormControl>
+            </Grid>
 
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel>Saat</InputLabel>
-              <Select
-                value={selectedTime || ''}
-                label="Saat"
-                onChange={(e) => setSelectedTime(e.target.value)}
-                disabled={!selectedDate}
-              >
-                {timeSlots.map((slot) => (
-                  <MenuItem key={slot} value={slot}>
-                    {slot}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={trLocale}>
+                <DatePicker
+                  label="Tarih"
+                  value={selectedDate}
+                  onChange={setSelectedDate}
+                  renderInput={(params) => <TextField {...params} fullWidth />}
+                  minDate={new Date()}
+                  maxDate={getNextMonthEnd()}
+                  shouldDisableDate={(date) => {
+                    const today = new Date();
+                    return isBefore(date, today) || isWeekend(date);
+                  }}
+                />
+              </LocalizationProvider>
+            </Grid>
+
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <FormControl fullWidth>
+                <InputLabel>Saat</InputLabel>
+                <Select
+                  value={selectedTime || ''}
+                  label="Saat"
+                  onChange={(e) => setSelectedTime(e.target.value)}
+                  disabled={!selectedDate}
+                >
+                  {timeSlots.map((slot) => (
+                    <MenuItem key={slot} value={slot}>
+                      {slot}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
           </Grid>
-        </Grid>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>İptal</Button>
-        <Button
-          onClick={handleSubmit}
-          variant="contained"
-          disabled={!selectedDepartment || !selectedDoctor || !selectedDate || !selectedTime}
-        >
-          Randevu Oluştur
-        </Button>
-      </DialogActions>
-    </Dialog>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>İptal</Button>
+          <Button
+            onClick={handleSubmit}
+            variant="contained"
+            disabled={!selectedDepartment || !selectedDoctor || !selectedDate || !selectedTime}
+          >
+            Randevu Oluştur
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={1500}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: '100%' }}>
+          Randevu alındı!
+        </Alert>
+      </Snackbar>
+    </>
   );
 }
 
-export default NewAppointmentForm; 
+export default NewAppointmentForm;
