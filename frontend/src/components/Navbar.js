@@ -85,16 +85,17 @@ function Navbar({ isDarkMode, isLoggedIn }) {
       e.preventDefault();
       const userInfo = JSON.parse(localStorage.getItem('userInfo'));
       if (userInfo?.userType === 'patient') {
-        navigate('/appointments');
+        navigate('/patient/appointments');
       } else if (userInfo?.userType === 'doctor') {
-        navigate('/patients');
+        navigate('/doctor/patients');
+      } else if (userInfo?.userType === 'admin') {
+        navigate('/admin/patients');
       }
     }
   };
 
   // Hasta menü öğeleri
   const patientMenuItems = [
-    { text: 'Doktorlar', icon: <LocalHospital />, path: '/patient/doctors' },
     { text: 'Randevularım', icon: <EventNote />, path: '/patient/appointments' },
     { text: 'Raporlarım', icon: <Description />, path: '/patient/reports' },
     { text: 'Dosya Yükle', icon: <Upload />, path: '/patient/upload' },
@@ -176,6 +177,7 @@ function Navbar({ isDarkMode, isLoggedIn }) {
             gap: 2,
             flexGrow: 1,
             justifyContent: 'center',
+            ml: -10
           }}>
             {getMenuItems().map((item, index) => (
               <Button

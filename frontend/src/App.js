@@ -144,11 +144,6 @@ function App() {
                 <NewAppointmentForm onSubmit={handleAddAppointment} />
               </ProtectedRoute>
             } />
-            <Route path="doctors" element={
-              <ProtectedRoute allowedRoles={['patient']}>
-                <Doctors />
-              </ProtectedRoute>
-            } />
             <Route path="reports" element={
               <ProtectedRoute allowedRoles={['patient']}>
                 <Reports />

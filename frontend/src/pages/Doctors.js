@@ -16,6 +16,11 @@ import {
 import React from 'react';
 
 function Doctors() {
+  // Kullanıcı tipini localStorage'dan al
+  const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+  const isAdmin = userInfo?.userType === 'admin';
+  const isPatient = userInfo?.userType === 'patient';
+
   // Örnek doktor verileri
   const doctors = [
     { id: 1, name: 'Dr. Ali Öztürk', specialty: 'Kardiyoloji', status: 'Aktif', patients: 45 },
@@ -30,13 +35,15 @@ function Doctors() {
         <Typography variant="h4" component="h1">
           Doktorlar
         </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-        >
-          Yeni Doktor Ekle
-        </Button>
+        {isAdmin && (
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+          >
+            Yeni Doktor Ekle
+          </Button>
+        )}
       </Box>
       <TableContainer component={Paper}>
         <Table>
@@ -46,8 +53,8 @@ function Doctors() {
               <TableCell>Ad Soyad</TableCell>
               <TableCell>Uzmanlık</TableCell>
               <TableCell>Durum</TableCell>
-              <TableCell>Hasta Sayısı</TableCell>
-              <TableCell>İşlemler</TableCell>
+              {!isPatient && <TableCell>Hasta Sayısı</TableCell>}
+              {!isPatient && <TableCell>İşlemler</TableCell>}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -63,15 +70,19 @@ function Doctors() {
                     size="small"
                   />
                 </TableCell>
-                <TableCell>{doctor.patients}</TableCell>
-                <TableCell>
-                  <Button size="small" color="primary">
-                    Düzenle
-                  </Button>
-                  <Button size="small" color="error">
-                    Sil
-                  </Button>
-                </TableCell>
+                {!isPatient && <TableCell>{doctor.patients}</TableCell>}
+                {!isPatient && (
+                  <TableCell>
+                    <Button size="small" color="primary">
+                      Düzenle
+                    </Button>
+                    {isAdmin && (
+                      <Button size="small" color="error">
+                        Sil
+                      </Button>
+                    )}
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>
