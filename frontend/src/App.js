@@ -1,8 +1,9 @@
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import NewAppointmentForm from './components/NewAppointmentForm';
 import Appointments from './pages/Appointments';
 import Dashboard from './pages/Dashboard';
 import Doctors from './pages/Doctors';
@@ -15,19 +16,28 @@ import Register from './pages/Register';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import Upload from './pages/Upload';
+import { AuthProvider, useAuth } from './context/AuthContext';
 
 function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [appointments, setAppointments] = useState([]);
 
   useEffect(() => {
     const loginStatus = localStorage.getItem('isLoggedIn');
     setIsLoggedIn(loginStatus === 'true');
+    const savedAppointments = JSON.parse(localStorage.getItem('appointments')) || [];
+    setAppointments(savedAppointments);
   }, []);
 
-  // Login durumunu güncellemek için fonksiyon
   const updateLoginStatus = (status) => {
     setIsLoggedIn(status);
+  };
+
+  const handleAddAppointment = (appointmentData) => {
+    const newAppointments = [...appointments, appointmentData];
+    setAppointments(newAppointments);
+    localStorage.setItem('appointments', JSON.stringify(newAppointments));
   };
 
   const theme = useMemo(
@@ -54,78 +64,85 @@ function App() {
     setIsDarkMode(!isDarkMode);
   };
 
-  // Korumalı route bileşeni
-  const ProtectedRoute = ({ children, allowedRoles }) => {
-    if (!isLoggedIn) {
-      return <Navigate to="/login" />;
+  const ProtectedRoute = ({ children }) => {
+    const { user, loading } = useAuth();
+
+    if (loading) {
+      return <div>Yükleniyor...</div>;
     }
 
-    const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-    if (allowedRoles && !allowedRoles.includes(userInfo?.userType)) {
-      return <Navigate to="/" />;
+    if (!user) {
+      return <Navigate to="/login" />;
     }
 
     return children;
   };
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Router>
-        <Navbar isDarkMode={isDarkMode} isLoggedIn={isLoggedIn} />
-        <Routes>
-          <Route path="/" element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/patients" element={
-            <ProtectedRoute allowedRoles={['doctor', 'admin']}>
-              <Patients />
-            </ProtectedRoute>
-          } />
-          <Route path="/doctors" element={
-            <ProtectedRoute>
-              <Doctors />
-            </ProtectedRoute>
-          } />
-          <Route path="/appointments" element={
-            <ProtectedRoute>
-              <Appointments />
-            </ProtectedRoute>
-          } />
-          <Route path="/reports" element={
-            <ProtectedRoute>
-              <Reports />
-            </ProtectedRoute>
-          } />
-          <Route path="/upload" element={
-            <ProtectedRoute allowedRoles={['patient']}>
-              <Upload />
-            </ProtectedRoute>
-          } />
-          <Route path="/notifications" element={
-            <ProtectedRoute allowedRoles={['doctor', 'admin']}>
-              <Notifications />
-            </ProtectedRoute>
-          } />
-          <Route path="/login" element={<Login updateLoginStatus={updateLoginStatus} />} />
-          <Route path="/register" element={<Register updateLoginStatus={updateLoginStatus} />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/profile" element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          } />
-          <Route path="/settings" element={
-            <ProtectedRoute>
-              <Settings isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
-            </ProtectedRoute>
-          } />
-        </Routes>
-      </Router>
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Router>
+          <Navbar isDarkMode={isDarkMode} isLoggedIn={isLoggedIn} />
+          <Routes>
+            <Route path="/" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/patients" element={
+              <ProtectedRoute>
+                <Patients />
+              </ProtectedRoute>
+            } />
+            <Route path="/doctors" element={
+              <ProtectedRoute>
+                <Doctors />
+              </ProtectedRoute>
+            } />
+            <Route path="/appointments" element={
+              <ProtectedRoute>
+                <Appointments appointments={appointments} />
+              </ProtectedRoute>
+            } />
+            <Route path="/appointments/new" element={
+              <ProtectedRoute>
+                <NewAppointmentForm onSubmit={handleAddAppointment} />
+              </ProtectedRoute>
+            } />
+            <Route path="/reports" element={
+              <ProtectedRoute>
+                <Reports />
+              </ProtectedRoute>
+            } />
+            <Route path="/upload" element={
+              <ProtectedRoute>
+                <Upload />
+              </ProtectedRoute>
+            } />
+            <Route path="/notifications" element={
+              <ProtectedRoute>
+                <Notifications />
+              </ProtectedRoute>
+            } />
+            <Route path="/login" element={<Login updateLoginStatus={updateLoginStatus} />} />
+            <Route path="/register" element={<Register updateLoginStatus={updateLoginStatus} />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } />
+            <Route path="/settings" element={
+              <ProtectedRoute>
+                <Settings isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </Router>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
 
-export default App; 
+export default App;

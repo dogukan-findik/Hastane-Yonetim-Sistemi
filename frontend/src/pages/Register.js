@@ -17,19 +17,31 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Typography,
+  MenuItem
 } from '@mui/material';
 import React, { useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { registerUser } from "../services/api";
 
 function Register() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
+    role: 'patient',
+    Ad: '',
+    Soyad: '',
+    Email: '',
+    Sifre: '',
     confirmPassword: '',
-    userType: 'patient', // Varsayılan olarak hasta
+    // Hasta
+    DogumTarihi: '',
+    Cinsiyet: '',
+    TelefonNumarasi: '',
+    Adres: '',
+    // Doktor
+    UzmanlikAlani: '',
+    CalistigiHastane: '',
+    Telefon: ''
   });
   const [error, setError] = useState('');
 
@@ -45,31 +57,41 @@ function Register() {
     if (newUserType !== null) {
       setFormData(prev => ({
         ...prev,
-        userType: newUserType
+        role: newUserType
       }));
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    if (formData.password !== formData.confirmPassword) {
+    if (formData.Sifre !== formData.confirmPassword) {
       setError('Şifreler eşleşmiyor');
       return;
     }
 
-    if (formData.name && formData.email && formData.password) {
-      // Kullanıcı bilgilerini localStorage'a kaydet
+    // Gerekli alanlar kontrolü
+    if (formData.role === 'patient') {
+      if (!formData.Ad || !formData.Soyad || !formData.Email || !formData.Sifre || !formData.DogumTarihi || !formData.Cinsiyet || !formData.TelefonNumarasi || !formData.Adres) {
+        setError('Lütfen tüm alanları doldurun');
+        return;
+      }
+    } else {
+      if (!formData.Ad || !formData.Soyad || !formData.Email || !formData.Sifre || !formData.UzmanlikAlani || !formData.CalistigiHastane || !formData.Telefon) {
+        setError('Lütfen tüm alanları doldurun');
+        return;
+      }
+    }
+
+    const result = await registerUser(formData);
+    if (result.success) {
+      localStorage.setItem('token', result.data.token);
+      localStorage.setItem('userInfo', JSON.stringify(result.data.user));
       localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('userInfo', JSON.stringify({
-        name: formData.name,
-        email: formData.email,
-        userType: formData.userType
-      }));
       navigate('/');
     } else {
-      setError('Lütfen tüm alanları doldurun');
+      setError(result.message || 'Kayıt işlemi başarısız');
     }
   };
 
@@ -93,50 +115,16 @@ function Register() {
         </Typography>
 
         <ToggleButtonGroup
-          value={formData.userType}
+          value={formData.role}
           exclusive
           onChange={handleUserTypeChange}
           aria-label="user type"
           sx={{ mb: 3 }}
         >
-          <ToggleButton 
-            value="patient" 
-            aria-label="patient"
-            sx={{
-              backgroundColor: '#ffebee',
-              color: '#d32f2f',
-              '&.Mui-selected': {
-                backgroundColor: '#ef9a9a',
-                color: '#b71c1c',
-                '&:hover': {
-                  backgroundColor: '#e57373',
-                }
-              },
-              '&:hover': {
-                backgroundColor: '#ffcdd2',
-              }
-            }}
-          >
+          <ToggleButton value="patient" aria-label="patient">
             <Person sx={{ mr: 1 }} /> Hasta
           </ToggleButton>
-          <ToggleButton 
-            value="doctor" 
-            aria-label="doctor"
-            sx={{
-              backgroundColor: '#c8e6c9',
-              color: '#1b5e20',
-              '&.Mui-selected': {
-                backgroundColor: '#81c784',
-                color: '#1b5e20',
-                '&:hover': {
-                  backgroundColor: '#66bb6a',
-                }
-              },
-              '&:hover': {
-                backgroundColor: '#a5d6a7',
-              }
-            }}
-          >
+          <ToggleButton value="doctor" aria-label="doctor">
             <LocalHospital sx={{ mr: 1 }} /> Doktor
           </ToggleButton>
         </ToggleButtonGroup>
@@ -152,12 +140,12 @@ function Register() {
             margin="normal"
             required
             fullWidth
-            id="name"
-            label="Ad Soyad"
-            name="name"
-            autoComplete="name"
+            id="Ad"
+            label="Ad"
+            name="Ad"
+            autoComplete="given-name"
             autoFocus
-            value={formData.name}
+            value={formData.Ad}
             onChange={handleChange}
             InputProps={{
               startAdornment: (
@@ -171,23 +159,34 @@ function Register() {
             margin="normal"
             required
             fullWidth
-            id="email"
-            label="E-posta Adresi"
-            name="email"
-            autoComplete="email"
-            value={formData.email}
+            id="Soyad"
+            label="Soyad"
+            name="Soyad"
+            autoComplete="family-name"
+            value={formData.Soyad}
             onChange={handleChange}
           />
           <TextField
             margin="normal"
             required
             fullWidth
-            name="password"
+            id="Email"
+            label="E-posta Adresi"
+            name="Email"
+            autoComplete="email"
+            value={formData.Email}
+            onChange={handleChange}
+          />
+          <TextField
+            margin="normal"
+            required
+            fullWidth
+            name="Sifre"
             label="Şifre"
             type={showPassword ? 'text' : 'password'}
-            id="password"
+            id="Sifre"
             autoComplete="new-password"
-            value={formData.password}
+            value={formData.Sifre}
             onChange={handleChange}
             InputProps={{
               endAdornment: (
@@ -214,16 +213,98 @@ function Register() {
             value={formData.confirmPassword}
             onChange={handleChange}
           />
+
+          {formData.role === 'patient' && (
+            <>
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                name="DogumTarihi"
+                label="Doğum Tarihi"
+                type="date"
+                id="DogumTarihi"
+                InputLabelProps={{ shrink: true }}
+                value={formData.DogumTarihi}
+                onChange={handleChange}
+              />
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                select
+                name="Cinsiyet"
+                label="Cinsiyet"
+                id="Cinsiyet"
+                value={formData.Cinsiyet}
+                onChange={handleChange}
+              >
+                <MenuItem value="Erkek">Erkek</MenuItem>
+                <MenuItem value="Kadın">Kadın</MenuItem>
+              </TextField>
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                name="TelefonNumarasi"
+                label="Telefon Numarası"
+                id="TelefonNumarasi"
+                value={formData.TelefonNumarasi}
+                onChange={handleChange}
+              />
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                name="Adres"
+                label="Adres"
+                id="Adres"
+                value={formData.Adres}
+                onChange={handleChange}
+              />
+            </>
+          )}
+
+          {formData.role === 'doctor' && (
+            <>
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                name="UzmanlikAlani"
+                label="Uzmanlık Alanı"
+                id="UzmanlikAlani"
+                value={formData.UzmanlikAlani}
+                onChange={handleChange}
+              />
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                name="CalistigiHastane"
+                label="Çalıştığı Hastane"
+                id="CalistigiHastane"
+                value={formData.CalistigiHastane}
+                onChange={handleChange}
+              />
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                name="Telefon"
+                label="Telefon"
+                id="Telefon"
+                value={formData.Telefon}
+                onChange={handleChange}
+              />
+            </>
+          )}
+
           <Button
             type="submit"
             fullWidth
             variant="contained"
-            sx={{
-              mt: 3,
-              mb: 2,
-              bgcolor: '#1a237e',
-              '&:hover': { bgcolor: '#000051' },
-            }}
+            sx={{ mt: 3, mb: 2, bgcolor: '#1a237e', '&:hover': { bgcolor: '#000051' } }}
           >
             Kayıt Ol
           </Button>
