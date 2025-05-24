@@ -1,22 +1,22 @@
 import {
-  AccountCircle,
-  LocalHospital,
-  Person,
-  Visibility,
-  VisibilityOff,
+    AccountCircle,
+    LocalHospital,
+    Person,
+    Visibility,
+    VisibilityOff,
 } from '@mui/icons-material';
 import {
-  Box,
-  Button,
-  Container,
-  IconButton,
-  InputAdornment,
-  Link,
-  Paper,
-  TextField,
-  ToggleButton,
-  ToggleButtonGroup,
-  Typography,
+    Box,
+    Button,
+    Container,
+    IconButton,
+    InputAdornment,
+    Link,
+    Paper,
+    TextField,
+    ToggleButton,
+    ToggleButtonGroup,
+    Typography,
 } from '@mui/material';
 import React, { useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
@@ -67,7 +67,15 @@ function Register() {
         email: formData.email,
         userType: formData.userType
       }));
-      navigate('/');
+      
+      // Kullanıcı tipine göre yönlendirme
+      if (formData.userType === 'patient') {
+        navigate('/patient/appointments');
+      } else if (formData.userType === 'doctor') {
+        navigate('/doctor/patients');
+      } else {
+        navigate('/admin/patients');
+      }
     } else {
       setError('Lütfen tüm alanları doldurun');
     }
