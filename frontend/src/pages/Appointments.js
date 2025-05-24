@@ -3,20 +3,20 @@ import { useEffect, useState } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 
 import {
-    Alert,
-    Box,
-    Button,
-    Chip,
-    Collapse,
-    Container,
-    Paper,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Typography
+  Alert,
+  Box,
+  Button,
+  Chip,
+  Collapse,
+  Container,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography
 } from '@mui/material';
 
 function Appointments() {
@@ -125,7 +125,7 @@ function Appointments() {
           <TableHead>
             <TableRow>
               <TableCell>ID</TableCell>
-              <TableCell>Hasta</TableCell>
+              {!isPatient && <TableCell>Hasta</TableCell>}
               <TableCell>Doktor</TableCell>
               <TableCell>Tarih</TableCell>
               <TableCell>Saat</TableCell>
@@ -137,7 +137,7 @@ function Appointments() {
             {appointments.map((appointment) => (
               <TableRow key={appointment.id}>
                 <TableCell>{appointment.id}</TableCell>
-                <TableCell>{appointment.patientName}</TableCell>
+                {!isPatient && <TableCell>{appointment.patientName}</TableCell>}
                 <TableCell>{appointment.doctorName}</TableCell>
                 <TableCell>{appointment.date}</TableCell>
                 <TableCell>{appointment.time}</TableCell>

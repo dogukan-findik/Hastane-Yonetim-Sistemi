@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import NewAppointmentForm from './components/NewAppointmentForm';
+import AddPatient from './pages/AddPatient';
 import Appointments from './pages/Appointments';
 import Dashboard from './pages/Dashboard';
 import Doctors from './pages/Doctors';
@@ -161,6 +162,11 @@ function App() {
             <Route path="patients" element={
               <ProtectedRoute allowedRoles={['doctor']}>
                 <Patients />
+              </ProtectedRoute>
+            } />
+            <Route path="patients/new" element={
+              <ProtectedRoute allowedRoles={['doctor']}>
+                <AddPatient />
               </ProtectedRoute>
             } />
             <Route path="appointments" element={

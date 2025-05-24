@@ -1,7 +1,9 @@
 import { Add as AddIcon } from '@mui/icons-material';
 import {
+    Alert,
     Box,
     Button,
+    Collapse,
     Container,
     Paper,
     Table,
@@ -12,9 +14,24 @@ import {
     TableRow,
     Typography,
 } from '@mui/material';
-import React from 'react';
+import { useEffect, useState } from 'react';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
 
 function Patients() {
+  const location = useLocation();
+  const [showNotification, setShowNotification] = useState(false);
+  
+  useEffect(() => {
+    if (location.state?.showNotification) {
+      setShowNotification(true);
+      // 5 saniye sonra bildirimi kapat
+      const timer = setTimeout(() => {
+        setShowNotification(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [location]);
+
   // Örnek hasta verileri
   const patients = [
     { id: 1, name: 'Ahmet Yılmaz', age: 45, phone: '555-0001', lastVisit: '2024-03-15' },
@@ -25,11 +42,28 @@ function Patients() {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Collapse in={showNotification}>
+        <Alert 
+          severity="success" 
+          sx={{ 
+            mb: 2,
+            fontSize: '1.1rem',
+            '& .MuiAlert-icon': {
+              fontSize: '2rem'
+            }
+          }}
+        >
+          Hasta başarıyla eklendi!
+        </Alert>
+      </Collapse>
+
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
         <Typography variant="h4" component="h1">
           Hastalar
         </Typography>
         <Button
+          component={RouterLink}
+          to="/doctor/patients/new"
           variant="contained"
           color="primary"
           startIcon={<AddIcon />}
