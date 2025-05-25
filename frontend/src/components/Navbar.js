@@ -1,26 +1,26 @@
 import {
-    AccountCircle,
-    Assessment,
-    Description,
-    EventNote,
-    LocalHospital,
-    Logout,
-    Notifications,
-    People,
-    Settings,
-    Upload,
+  AccountCircle,
+  Assessment,
+  Description,
+  EventNote,
+  LocalHospital,
+  Logout,
+  Notifications,
+  People,
+  Settings,
+  Upload,
 } from '@mui/icons-material';
 import {
-    AppBar,
-    Avatar,
-    Box,
-    Button,
-    Divider,
-    IconButton,
-    Menu,
-    MenuItem,
-    Toolbar,
-    Typography,
+  AppBar,
+  Avatar,
+  Box,
+  Button,
+  Divider,
+  IconButton,
+  Menu,
+  MenuItem,
+  Toolbar,
+  Typography,
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
@@ -81,32 +81,41 @@ function Navbar({ isDarkMode, isLoggedIn }) {
     if (!isLoggedIn) {
       e.preventDefault();
       navigate('/login');
+    } else {
+      e.preventDefault();
+      const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+      if (userInfo?.userType === 'patient') {
+        navigate('/patient/appointments');
+      } else if (userInfo?.userType === 'doctor') {
+        navigate('/doctor/patients');
+      } else if (userInfo?.userType === 'admin') {
+        navigate('/admin/patients');
+      }
     }
   };
 
   // Hasta menü öğeleri
   const patientMenuItems = [
-    { text: 'Doktorlar', icon: <LocalHospital />, path: '/doctors' },
-    { text: 'Randevularım', icon: <EventNote />, path: '/appointments' },
-    { text: 'Raporlarım', icon: <Description />, path: '/reports' },
-    { text: 'Dosya Yükle', icon: <Upload />, path: '/upload' },
+    { text: 'Randevularım', icon: <EventNote />, path: '/patient/appointments' },
+    { text: 'Raporlarım', icon: <Description />, path: '/patient/reports' },
+    { text: 'Dosya Yükle', icon: <Upload />, path: '/patient/upload' },
   ];
 
   // Doktor menü öğeleri
   const doctorMenuItems = [
-    { text: 'Hastalarım', icon: <People />, path: '/patients' },
-    { text: 'Randevular', icon: <EventNote />, path: '/appointments' },
-    { text: 'Raporlar', icon: <Description />, path: '/reports' },
-    { text: 'Bildirimler', icon: <Notifications />, path: '/notifications' },
+    { text: 'Hastalarım', icon: <People />, path: '/doctor/patients' },
+    { text: 'Randevular', icon: <EventNote />, path: '/doctor/appointments' },
+    { text: 'Raporlar', icon: <Description />, path: '/doctor/reports' },
+    { text: 'Bildirimler', icon: <Notifications />, path: '/doctor/notifications' },
   ];
 
   // Yönetici menü öğeleri
   const adminMenuItems = [
-    { text: 'Hastalar', icon: <People />, path: '/patients' },
-    { text: 'Doktorlar', icon: <LocalHospital />, path: '/doctors' },
-    { text: 'Randevular', icon: <EventNote />, path: '/appointments' },
-    { text: 'Raporlar', icon: <Assessment />, path: '/reports' },
-    { text: 'Bildirimler', icon: <Notifications />, path: '/notifications' },
+    { text: 'Hastalar', icon: <People />, path: '/admin/patients' },
+    { text: 'Doktorlar', icon: <LocalHospital />, path: '/admin/doctors' },
+    { text: 'Randevular', icon: <EventNote />, path: '/admin/appointments' },
+    { text: 'Raporlar', icon: <Assessment />, path: '/admin/reports' },
+    { text: 'Bildirimler', icon: <Notifications />, path: '/admin/notifications' },
   ];
 
   // Kullanıcı tipine göre menü öğelerini seç
@@ -168,6 +177,7 @@ function Navbar({ isDarkMode, isLoggedIn }) {
             gap: 2,
             flexGrow: 1,
             justifyContent: 'center',
+            ml: -10
           }}>
             {getMenuItems().map((item, index) => (
               <Button
