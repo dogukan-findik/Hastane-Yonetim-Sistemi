@@ -1,10 +1,13 @@
 import { Add as AddIcon } from '@mui/icons-material';
-import { Link as RouterLink } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
 
 import {
+  Alert,
   Box,
   Button,
   Chip,
+  Collapse,
   Container,
   Paper,
   Table,
@@ -13,10 +16,28 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Typography,
+  Typography
 } from '@mui/material';
 
 function Appointments() {
+  const location = useLocation();
+  const [showNotification, setShowNotification] = useState(false);
+  
+  // Kullanıcı tipini localStorage'dan al
+  const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+  const isPatient = userInfo?.userType === 'patient';
+
+  useEffect(() => {
+    if (location.state?.showNotification) {
+      setShowNotification(true);
+      // 5 saniye sonra bildirimi kapat
+      const timer = setTimeout(() => {
+        setShowNotification(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [location]);
+
   // Örnek randevu verileri
   const appointments = [
     {
@@ -68,26 +89,43 @@ function Appointments() {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Collapse in={showNotification}>
+        <Alert 
+          severity="success" 
+          sx={{ 
+            mb: 2,
+            fontSize: '1.1rem',
+            '& .MuiAlert-icon': {
+              fontSize: '2rem'
+            }
+          }}
+        >
+          Randevu talebiniz başarıyla alınmıştır.
+        </Alert>
+      </Collapse>
+
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
         <Typography variant="h4" component="h1">
-          Randevular
+          {isPatient ? 'Randevularım' : 'Randevular'}
         </Typography>
+        {isPatient && (
           <Button
             component={RouterLink}
-            to="/appointments/new"
+            to="/patient/appointments/new"
             variant="contained"
             color="primary"
             startIcon={<AddIcon />}
           >
             Yeni Randevu
           </Button>
+        )}
       </Box>
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
               <TableCell>ID</TableCell>
-              <TableCell>Hasta</TableCell>
+              {!isPatient && <TableCell>Hasta</TableCell>}
               <TableCell>Doktor</TableCell>
               <TableCell>Tarih</TableCell>
               <TableCell>Saat</TableCell>
@@ -99,7 +137,7 @@ function Appointments() {
             {appointments.map((appointment) => (
               <TableRow key={appointment.id}>
                 <TableCell>{appointment.id}</TableCell>
-                <TableCell>{appointment.patientName}</TableCell>
+                {!isPatient && <TableCell>{appointment.patientName}</TableCell>}
                 <TableCell>{appointment.doctorName}</TableCell>
                 <TableCell>{appointment.date}</TableCell>
                 <TableCell>{appointment.time}</TableCell>
@@ -111,12 +149,20 @@ function Appointments() {
                   />
                 </TableCell>
                 <TableCell>
-                  <Button size="small" color="primary">
-                    Düzenle
-                  </Button>
-                  <Button size="small" color="error">
-                    İptal Et
-                  </Button>
+                  {isPatient ? (
+                    <Button size="small" color="error">
+                      İptal Et
+                    </Button>
+                  ) : (
+                    <>
+                      <Button size="small" color="primary">
+                        Düzenle
+                      </Button>
+                      <Button size="small" color="error">
+                        İptal Et
+                      </Button>
+                    </>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
