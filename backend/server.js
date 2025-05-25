@@ -14,6 +14,10 @@ app.use(cors());
 // Veritabanına bağlan
 connectDB();
 
+// Test route ekleyelim
+const testRoutes = require("./routes/testRoutes");
+app.use("/api/test", testRoutes);
+
 // Test endpoint
 app.get("/", (req, res) => {
     res.send("API çalışıyor!");
