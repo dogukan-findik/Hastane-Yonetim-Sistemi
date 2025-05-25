@@ -20,6 +20,9 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// uploads klasörünü statik olarak sun
+app.use('/uploads', express.static('uploads'));
+
 // MongoDB bağlantısı
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/hastane_yonetim', {
     useNewUrlParser: true,

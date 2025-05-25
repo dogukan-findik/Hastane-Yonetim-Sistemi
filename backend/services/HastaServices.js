@@ -1,5 +1,6 @@
 const Hasta = require('../models/hasta');
 const Randevu = require('../models/randevu');
+const mongoose = require('mongoose');
 
 class HastaServices {
     // Yeni hasta ekleme
@@ -74,6 +75,27 @@ class HastaServices {
             return await Randevu.find({ HastaID: hastaID });
         } catch (error) {
             throw new Error(`Hasta randevuları getirilirken hata oluştu: ${error.message}`);
+        }
+    }
+
+    // Belirli bir doktora randevu almış hastaları getirme
+    async doktorunHastalari(doktorID) {
+        try {
+            // Önce bu doktora ait randevuları bul
+            const randevular = await Randevu.find({ DoktorID: doktorID });
+            console.log('Randevular:', randevular);
+            // HastaID'leri çıkar
+            const hastaIdler = [...new Set(randevular.map(r => r.HastaID.toString()))];
+            console.log('HastaIdler:', hastaIdler);
+            // Stringleri ObjectId'ye çevir
+            const objectIdList = hastaIdler.map(id => mongoose.Types.ObjectId(id));
+            console.log('ObjectIdList:', objectIdList);
+            // Bu ID'lere sahip hastaları getir
+            const hastalar = await Hasta.find({ _id: { $in: objectIdList } });
+            console.log('Hastalar:', hastalar);
+            return hastalar;
+        } catch (error) {
+            throw new Error(`Doktorun hastaları getirilirken hata oluştu: ${error.message}`);
         }
     }
 }

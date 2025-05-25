@@ -62,7 +62,7 @@ router.post("/register", async (req, res) => {
         jwt.sign(
             payload,
             process.env.JWT_SECRET,
-            { expiresIn: process.env.JWT_EXPIRES_IN },
+
             (err, token) => {
                 if (err) throw err;
                 const userObj = user.toObject ? user.toObject() : user;
@@ -160,4 +160,3 @@ router.get("/me", authMiddleware, async (req, res) => {
     res.json(user);
 });
 
-module.exports = router;

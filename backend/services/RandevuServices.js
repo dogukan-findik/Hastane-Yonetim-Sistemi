@@ -7,18 +7,22 @@ class RandevuServices {
     async randevuEkle(randevuData) {
         try {
             // Hasta ve doktorun varlığını kontrol et
-            const hasta = await Hasta.findOne({ HastaID: randevuData.HastaID });
-            const doktor = await Doktor.findOne({ DoktorID: randevuData.DoktorID });
-
+            const hasta = await Hasta.findById(randevuData.HastaID);
+            const doktor = await Doktor.findById(randevuData.DoktorID);
+            console.log("Bulunan hasta:", hasta);
+            console.log("Bulunan doktor:", doktor);
             if (!hasta || !doktor) {
                 throw new Error('Geçerli hasta veya doktor bulunamadı');
             }
 
             // Aynı tarih ve saatte başka randevu var mı kontrol et
+            const dateOnly = new Date(randevuData.Tarih);
+            dateOnly.setHours(0, 0, 0, 0);
+
             const mevcutRandevu = await Randevu.findOne({
                 DoktorID: randevuData.DoktorID,
-                RandevuTarihi: randevuData.RandevuTarihi,
-                RandevuSaati: randevuData.RandevuSaati
+                Tarih: dateOnly,
+                Saat: randevuData.Saat
             });
 
             if (mevcutRandevu) {
@@ -26,7 +30,9 @@ class RandevuServices {
             }
 
             const yeniRandevu = new Randevu(randevuData);
-            return await yeniRandevu.save();
+            const saved = await yeniRandevu.save();
+            console.log("Kaydedilen randevu:", saved);
+            return saved;
         } catch (error) {
             throw new Error(`Randevu eklenirken hata oluştu: ${error.message}`);
         }
@@ -74,7 +80,7 @@ class RandevuServices {
     // Randevu silme
     async randevuSil(randevuID) {
         try {
-            const silinenRandevu = await Randevu.findOneAndDelete({ RandevuID: randevuID });
+            const silinenRandevu = await Randevu.findOneAndDelete({ _id: randevuID });
             if (!silinenRandevu) {
                 throw new Error('Silinecek randevu bulunamadı');
             }

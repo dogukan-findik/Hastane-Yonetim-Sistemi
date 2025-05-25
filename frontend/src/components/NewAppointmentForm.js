@@ -14,8 +14,9 @@ import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { addMonths, endOfMonth, format, isBefore, isWeekend } from 'date-fns';
 import trLocale from 'date-fns/locale/tr';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 // Örnek bölümler ve doktorlar
 const departments = [
@@ -64,17 +65,11 @@ function NewAppointmentForm({ onSubmit }) {
   const [selectedDoctor, setSelectedDoctor] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedHour, setSelectedHour] = useState('');
-  const [selectedMinute, setSelectedMinute] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
 
   const steps = ['Bölüm Seçimi', 'Doktor Seçimi', 'Tarih Seçimi', 'Saat Seçimi'];
 
-  const handleNext = () => {
-    setActiveStep((prevStep) => prevStep + 1);
-  };
 
-  const handleBack = () => {
-    setActiveStep((prevStep) => prevStep - 1);
   };
 
   const handleDepartmentChange = (departmentId) => {
@@ -113,17 +108,7 @@ function NewAppointmentForm({ onSubmit }) {
     return bookedAppointments[dateStr]?.[hour]?.includes(minute) || false;
   };
 
-  const handleSubmit = () => {
-    if (isSubmitting) return;
-    setIsSubmitting(true);
 
-    const appointmentData = {
-      department: departments.find(d => d.id === selectedDepartment)?.name,
-      doctor: doctors[selectedDepartment]?.find(d => d.id === selectedDoctor)?.name,
-      date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '',
-      time: `${selectedHour}:${selectedMinute}`,
-      isNewAppointment: true
-    };
 
     onSubmit(appointmentData);
     navigate('/patient/appointments', { state: { showNotification: true } });

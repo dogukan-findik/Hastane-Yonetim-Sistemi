@@ -55,3 +55,17 @@ exports.HastaSilme = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+// Belirli bir doktora randevu almış hastaları listeleme
+exports.DoktorunHastalari = async (req, res) => {
+    try {
+        const doktorID = req.params.doktorID;
+        console.log('GELEN doktorID:', doktorID);
+        const hastalar = await hastaServices.doktorunHastalari(doktorID);
+        console.log('DÖNEN hastalar:', hastalar);
+        res.status(200).json(hastalar);
+    } catch (error) {
+        console.error("Doktorun hastaları getirilirken hata:", error);
+        res.status(500).json({ message: error.message });
+    }
+};

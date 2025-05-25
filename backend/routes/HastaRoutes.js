@@ -2,6 +2,7 @@
 const express = require("express");
 const router = express.Router();
 const hastaController = require("../controller/HastaController");
+const Hasta = require("../models/hasta");
 
 // Hasta ekleme
 router.post("/ekle", hastaController.HastaEkle);
@@ -17,5 +18,8 @@ router.put("/guncelle/:hastaID", hastaController.HastaGüncelleme);
 
 // Hasta silme
 router.delete("/sil/:hastaID", hastaController.HastaSilme);
+
+// Belirli bir doktora randevu almış hastaları listeleme
+router.get("/doktor/:doktorID", hastaController.DoktorunHastalari);
 
 module.exports = router;

@@ -1,27 +1,14 @@
 const mongoose = require('mongoose');
 
 const randevuSchema = new mongoose.Schema({
-    RandevuID: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    RandevuTarihi: {
-        type: Date,
-        required: true
-    },
-    RandevuSaati: {
-        type: String,
-        required: true
-    },
-    HastaID: {
-        type: String,
-        required: true
-    },
-    DoktorID: {
-        type: String,
-        required: true
-    }
+    Bolum: { type: String, required: true },
+    DoktorID: { type: mongoose.Schema.Types.ObjectId, ref: 'Doktor', required: true },
+    DoktorAdSoyad: { type: String, required: true },
+    HastaID: { type: mongoose.Schema.Types.ObjectId, ref: 'Hasta', required: true },
+    HastaAdSoyad: { type: String, required: true },
+    Tarih: { type: Date, required: true },
+    Saat: { type: String, required: true },
+    Durum: { type: String, default: 'Beklemede' }
 });
 
-module.exports = mongoose.model('Randevu', randevuSchema);
+module.exports = mongoose.models.Randevu || mongoose.model('Randevu', randevuSchema, 'randevu');

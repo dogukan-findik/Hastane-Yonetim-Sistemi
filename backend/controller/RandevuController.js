@@ -1,5 +1,6 @@
 // controllers/appointmentController.js
 const randevuServices = require("../services/RandevuServices");
+const Randevu = require("../models/randevu");
 
 // Randevu ekleme
 exports.RandevuEkle = async (req, res) => {
@@ -43,4 +44,29 @@ exports.RandevuSilme = async (req, res) => {
         console.error("Randevu silme hatası:", error);
         res.status(500).json({ message: error.message });
     }
+};
+
+exports.DoktorunRandevulari = async (req, res) => {
+    try {
+        const doktorID = req.params.doktorID;
+        const randevular = await Randevu.find({ DoktorID: doktorID });
+        res.status(200).json(randevular);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.HastaninRandevulari = async (req, res) => {
+    try {
+        const hastaID = req.params.hastaID;
+        const randevular = await Randevu.find({ HastaID: hastaID });
+        res.status(200).json(randevular);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.hastaRandevulari = async (req, res) => {
+    const randevular = await Randevu.find({ HastaID: req.params.hastaID });
+    res.json(randevular);
 };
