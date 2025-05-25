@@ -21,30 +21,32 @@ import {
 } from '@mui/material';
 
 function Appointments() {
-  const [appointments, setAppointments] = useState([]);
+  const [randevular, setRandevular] = useState([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  // const userInfo = JSON.parse(localStorage.getItem('userInfo'));
 
-  // Randevuları getir
-  const fetchAppointments = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/api/randevu/listele');
-      setAppointments(response.data);
-    } catch (error) {
-      setError('Randevular yüklenirken bir hata oluştu');
-      console.error('Randevu getirme hatası:', error);
-    }
-  };
-
+  // Tüm kullanıcılar için tüm randevuları çek
   useEffect(() => {
-    fetchAppointments();
+    const fetchData = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/randevular/listele');
+        setRandevular(response.data);
+      } catch (error) {
+        console.error('Randevular yüklenirken hata:', error);
+      }
+    };
+
+    fetchData();
   }, []);
 
   // Randevu iptal etme
   const handleCancelAppointment = async (randevuID) => {
     try {
       await axios.delete(`http://localhost:5000/api/randevu/sil/${randevuID}`);
-      fetchAppointments(); // Listeyi yenile
+      // Listeyi yenile
+      const response = await axios.get('http://localhost:5000/api/randevular/listele');
+      setRandevular(response.data);
     } catch (error) {
       setError('Randevu iptal edilirken bir hata oluştu');
       console.error('Randevu iptal hatası:', error);
@@ -107,7 +109,7 @@ function Appointments() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {appointments.map((appointment) => (
+            {randevular.map((appointment) => (
               <TableRow key={appointment._id}>
                 <TableCell>{appointment._id}</TableCell>
                 <TableCell>{appointment.HastaAdSoyad}</TableCell>

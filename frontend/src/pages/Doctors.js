@@ -13,9 +13,11 @@ import {
     TableRow,
     Typography,
 } from '@mui/material';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 
 function Doctors() {
+  const [randevular, setRandevular] = useState([]);
   // Örnek doktor verileri
   const doctors = [
     { id: 1, name: 'Dr. Ali Öztürk', specialty: 'Kardiyoloji', status: 'Aktif', patients: 45 },
@@ -23,6 +25,20 @@ function Doctors() {
     { id: 3, name: 'Dr. Mustafa Demir', specialty: 'Ortopedi', status: 'İzinli', patients: 25 },
     { id: 4, name: 'Dr. Elif Kaya', specialty: 'Göz Hastalıkları', status: 'Aktif', patients: 42 },
   ];
+
+  useEffect(() => {
+    const fetchRandevular = async () => {
+      try {
+        // userInfo değişkenini uygun şekilde tanımlamalısın!
+        // const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+        // const response = await axios.get(`http://localhost:5000/api/randevular/doktor/${userInfo._id}`);
+        // setRandevular(response.data);
+      } catch (error) {
+        console.error('Randevular yüklenirken hata:', error);
+      }
+    };
+    fetchRandevular();
+  }, []);
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>

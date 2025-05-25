@@ -4,15 +4,21 @@ import { Box, Container, Paper, Typography, Table, TableBody, TableCell, TableCo
 
 function Reports() {
   const [raporlar, setRaporlar] = useState([]);
+  const [hastalar, setHastalar] = useState({});
   const userInfo = JSON.parse(localStorage.getItem('userInfo'));
 
   useEffect(() => {
-    if (userInfo.role === 'patient') {
-      axios.get(`http://localhost:5000/api/raporlar/hasta/${userInfo._id}`).then(res => setRaporlar(res.data));
-    } else if (userInfo.role === 'doctor') {
-      axios.get('http://localhost:5000/api/raporlar/listele').then(res => setRaporlar(res.data));
-    }
-  }, [userInfo]);
+    const fetchData = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/raporlar/listele');
+        setRaporlar(response.data);
+      } catch (error) {
+        console.error('Raporlar yüklenirken hata:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>

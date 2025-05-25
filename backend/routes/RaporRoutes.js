@@ -26,8 +26,6 @@ router.put("/guncelle/:raporID", RaporController.RaporGuncelle);
 router.delete("/sil/:raporID", RaporController.RaporSil);
 
 router.post('/yukle', upload.single('dosya'), RaporController.raporYukle);
-router.get('/hasta/:hastaID', RaporController.hastaRaporlari);
-router.get('/doktor/:doktorID', RaporController.doktorRaporlari);
 router.get('/:raporID', RaporController.raporDetay);
 router.delete('/:raporID', RaporController.raporSil);
 

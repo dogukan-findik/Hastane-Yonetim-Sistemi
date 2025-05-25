@@ -11,4 +11,4 @@ const randevuSchema = new mongoose.Schema({
     Durum: { type: String, default: 'Beklemede' }
 });
 
-module.exports = mongoose.model('Randevu', randevuSchema, 'randevu');
+module.exports = mongoose.models.Randevu || mongoose.model('Randevu', randevuSchema, 'randevu');

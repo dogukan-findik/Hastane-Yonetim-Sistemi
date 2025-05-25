@@ -6,16 +6,6 @@ const raporSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
-    HastaID: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Hasta',
-        required: false
-    },
-    DoktorID: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Doktor',
-        required: false
-    },
     RaporTarihi: {
         type: Date,
         required: true

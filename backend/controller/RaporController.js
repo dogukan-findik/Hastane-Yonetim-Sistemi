@@ -50,8 +50,7 @@ exports.RaporSil = async (req, res) => {
 
 exports.raporYukle = async (req, res) => {
   try {
-    console.log("YÜKLEME İSTEĞİ GELDİ:", req.body, req.file);
-    const { HastaID, DoktorID, RaporTarihi, RaporIcerigi, EkVeri } = req.body;
+    const { RaporTarihi, RaporIcerigi, EkVeri } = req.body;
     let dosyaURL = null;
     if (req.file) {
       dosyaURL = `/uploads/raporlar/${req.file.filename}`;
@@ -64,9 +63,6 @@ exports.raporYukle = async (req, res) => {
       EkVeri: EkVeri ? JSON.parse(EkVeri) : undefined
     };
 
-    if (HastaID) yeniRaporObj.HastaID = HastaID;
-    if (DoktorID) yeniRaporObj.DoktorID = DoktorID;
-
     const yeniRapor = new Rapor(yeniRaporObj);
     await yeniRapor.save();
     res.status(201).json({ success: true, rapor: yeniRapor });
@@ -74,16 +70,6 @@ exports.raporYukle = async (req, res) => {
     console.error("RAPOR YÜKLEME HATASI:", err);
     res.status(500).json({ success: false, message: err.message });
   }
-};
-
-exports.hastaRaporlari = async (req, res) => {
-  const raporlar = await Rapor.find({ HastaID: req.params.hastaID });
-  res.json(raporlar);
-};
-
-exports.doktorRaporlari = async (req, res) => {
-  const raporlar = await Rapor.find({ DoktorID: req.params.doktorID });
-  res.json(raporlar);
 };
 
 exports.raporDetay = async (req, res) => {

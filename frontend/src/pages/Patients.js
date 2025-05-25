@@ -14,9 +14,12 @@ import {
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { getHastalar } from '../services/api';
+import axios from 'axios';
 
 function Patients() {
   const [hastalar, setHastalar] = useState([]);
+  const [randevular, setRandevular] = useState([]);
+
   useEffect(() => {
     // Kullanıcı bilgilerini localStorage'dan al
     const userInfo = JSON.parse(localStorage.getItem('userInfo'));
@@ -30,6 +33,17 @@ function Patients() {
         if (result.success) setHastalar(result.data);
       });
     }
+
+    // Randevuları çek
+    axios.get(`http://localhost:5000/api/randevular/hasta/${userInfo._id}`)
+      .then(response => {
+        if (response.data.success) {
+          setRandevular(response.data.data);
+        }
+      })
+      .catch(error => {
+        console.error('Randevular çekerken hata oluştu:', error);
+      });
   }, []);
 
   return (
