@@ -1,21 +1,23 @@
 import { Add as AddIcon } from '@mui/icons-material';
 import {
-    Box,
-    Button,
-    Chip,
-    Container,
-    Paper,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Typography,
+  Box,
+  Button,
+  Chip,
+  Container,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
 } from '@mui/material';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 
 function Doctors() {
+
   // Örnek doktor verileri
   const doctors = [
     { id: 1, name: 'Dr. Ali Öztürk', specialty: 'Kardiyoloji', status: 'Aktif', patients: 45 },
@@ -24,19 +26,35 @@ function Doctors() {
     { id: 4, name: 'Dr. Elif Kaya', specialty: 'Göz Hastalıkları', status: 'Aktif', patients: 42 },
   ];
 
+  useEffect(() => {
+    const fetchRandevular = async () => {
+      try {
+        // userInfo değişkenini uygun şekilde tanımlamalısın!
+        // const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+        // const response = await axios.get(`http://localhost:5000/api/randevular/doktor/${userInfo._id}`);
+        // setRandevular(response.data);
+      } catch (error) {
+        console.error('Randevular yüklenirken hata:', error);
+      }
+    };
+    fetchRandevular();
+  }, []);
+
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
         <Typography variant="h4" component="h1">
           Doktorlar
         </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-        >
-          Yeni Doktor Ekle
-        </Button>
+        {isAdmin && (
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+          >
+            Yeni Doktor Ekle
+          </Button>
+        )}
       </Box>
       <TableContainer component={Paper}>
         <Table>
@@ -46,8 +64,8 @@ function Doctors() {
               <TableCell>Ad Soyad</TableCell>
               <TableCell>Uzmanlık</TableCell>
               <TableCell>Durum</TableCell>
-              <TableCell>Hasta Sayısı</TableCell>
-              <TableCell>İşlemler</TableCell>
+              {!isPatient && <TableCell>Hasta Sayısı</TableCell>}
+              {!isPatient && <TableCell>İşlemler</TableCell>}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -63,15 +81,19 @@ function Doctors() {
                     size="small"
                   />
                 </TableCell>
-                <TableCell>{doctor.patients}</TableCell>
-                <TableCell>
-                  <Button size="small" color="primary">
-                    Düzenle
-                  </Button>
-                  <Button size="small" color="error">
-                    Sil
-                  </Button>
-                </TableCell>
+                {!isPatient && <TableCell>{doctor.patients}</TableCell>}
+                {!isPatient && (
+                  <TableCell>
+                    <Button size="small" color="primary">
+                      Düzenle
+                    </Button>
+                    {isAdmin && (
+                      <Button size="small" color="error">
+                        Sil
+                      </Button>
+                    )}
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>

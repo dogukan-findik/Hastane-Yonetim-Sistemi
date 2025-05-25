@@ -1,5 +1,8 @@
 // controllers/medicalReportController.js
 const raporServices = require("../services/RaporServices");
+const Rapor = require('../models/rapor');
+const path = require('path');
+const cors = require('cors');
 
 // Rapor ekleme
 exports.RaporEkle = async (req, res) => {
@@ -43,4 +46,38 @@ exports.RaporSil = async (req, res) => {
         console.error("Rapor silme hatası:", error);
         res.status(500).json({ message: error.message });
     }
+};
+
+exports.raporYukle = async (req, res) => {
+  try {
+    const { RaporTarihi, RaporIcerigi, EkVeri } = req.body;
+    let dosyaURL = null;
+    if (req.file) {
+      dosyaURL = `/uploads/raporlar/${req.file.filename}`;
+    }
+    const yeniRaporObj = {
+      RaporID: Date.now().toString(),
+      RaporTarihi,
+      RaporIcerigi,
+      DosyaURL: dosyaURL,
+      EkVeri: EkVeri ? JSON.parse(EkVeri) : undefined
+    };
+
+    const yeniRapor = new Rapor(yeniRaporObj);
+    await yeniRapor.save();
+    res.status(201).json({ success: true, rapor: yeniRapor });
+  } catch (err) {
+    console.error("RAPOR YÜKLEME HATASI:", err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.raporDetay = async (req, res) => {
+  const rapor = await Rapor.findOne({ RaporID: req.params.raporID });
+  res.json(rapor);
+};
+
+exports.raporSil = async (req, res) => {
+  await Rapor.deleteOne({ RaporID: req.params.raporID });
+  res.json({ success: true });
 };

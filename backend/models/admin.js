@@ -2,30 +2,12 @@
 const mongoose = require("mongoose");
 
 const adminSchema = new mongoose.Schema({
-    YoneticiID: {
-        type: Number,
-        required: true,
-        unique: true
-    },
-    Ad: {
-        type: String,
-        required: true
-    },
-    Soyad: {
-        type: String,
-        required: true
-    },
-    Email: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    Sifre: {
-        type: String,
-        required: true
-    }
+    Ad: String,
+    Soyad: String,
+    Email: { type: String, unique: true },
+    Sifre: String
 }, {
     timestamps: true
 });
 
-module.exports = mongoose.model("Admin", adminSchema);
+module.exports = mongoose.model("Admin", adminSchema, "admin");

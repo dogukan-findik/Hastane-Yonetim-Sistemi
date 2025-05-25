@@ -15,4 +15,10 @@ router.put("/guncelle/:randevuID", randevuController.RandevuGüncelleme);
 // Randevu silme
 router.delete("/sil/:randevuID", randevuController.RandevuSilme);
 
+// Doktorun randevuları
+router.get('/doktor/:doktorID', randevuController.DoktorunRandevulari);
+
+// Hastanın randevuları
+router.get('/hasta/:hastaID', randevuController.HastaninRandevulari);
+
 module.exports = router;

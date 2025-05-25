@@ -7,8 +7,8 @@ class RaporServices {
     async raporEkle(raporData) {
         try {
             // Hasta ve doktorun varlığını kontrol et
-            const hasta = await Hasta.findOne({ HastaID: raporData.HastaID });
-            const doktor = await Doktor.findOne({ DoktorID: raporData.DoktorID });
+            const hasta = await Hasta.findById(raporData.HastaID);
+            const doktor = await Doktor.findById(raporData.DoktorID);
 
             if (!hasta || !doktor) {
                 throw new Error('Geçerli hasta veya doktor bulunamadı');

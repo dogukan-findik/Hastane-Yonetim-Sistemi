@@ -1,5 +1,3 @@
-
-
 const mongoose = require('mongoose');
 
 const raporSchema = new mongoose.Schema({
@@ -8,24 +6,19 @@ const raporSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
-    RaporIcerigi: {
-        type: String,
-        required: true
-    },
     RaporTarihi: {
         type: Date,
         required: true
     },
-    HastaID: {
-        type: String,
-        required: true
+    RaporIcerigi: {
+        type: String
     },
-    DoktorID: {
-        type: String,
-        required: true
+    DosyaURL: {
+        type: String
+    },
+    EkVeri: {
+        type: Object
     }
 });
 
-
-
-module.exports = mongoose.model('Rapor', raporSchema);
+module.exports = mongoose.model('Rapor', raporSchema, 'raporlar');

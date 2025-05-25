@@ -1,8 +1,17 @@
 // routes/medicalReports.js
 
 const express = require("express");
-const router = express.Router();
+const multer = require('multer');
+const path = require('path');
 const RaporController = require("../controller/RaporController");
+
+const router = express.Router();
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, 'uploads/raporlar/'),
+  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
+});
+const upload = multer({ storage });
 
 // Rapor ekleme
 router.post("/ekle", RaporController.RaporEkle);
@@ -15,5 +24,9 @@ router.put("/guncelle/:raporID", RaporController.RaporGuncelle);
 
 // Rapor silme
 router.delete("/sil/:raporID", RaporController.RaporSil);
+
+router.post('/yukle', upload.single('dosya'), RaporController.raporYukle);
+router.get('/:raporID', RaporController.raporDetay);
+router.delete('/:raporID', RaporController.raporSil);
 
 module.exports = router;

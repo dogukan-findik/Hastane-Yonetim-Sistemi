@@ -1,35 +1,36 @@
 import {
-    AdminPanelSettings,
-    LocalHospital,
-    Login as LoginIcon,
-    Person,
-    Visibility,
-    VisibilityOff
+  AdminPanelSettings,
+  LocalHospital,
+  Login as LoginIcon,
+  Person,
+  Visibility,
+  VisibilityOff
 } from '@mui/icons-material';
 import {
-    Alert,
-    Box,
-    Button,
-    Container,
-    IconButton,
-    InputAdornment,
-    Link,
-    Paper,
-    TextField,
-    ToggleButton,
-    ToggleButtonGroup,
-    Typography,
+  Alert,
+  Box,
+  Button,
+  Container,
+  IconButton,
+  InputAdornment,
+  Link,
+  Paper,
+  TextField,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
 } from '@mui/material';
 import React, { useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { loginUser } from "../services/api";
 
 function Login({ updateLoginStatus }) {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    userType: 'patient', // Varsayılan olarak hasta
+    Email: '',
+    Sifre: '',
+    role: 'patient', // Varsayılan olarak hasta
   });
   const [error, setError] = useState('');
 
@@ -45,27 +46,31 @@ function Login({ updateLoginStatus }) {
     if (newUserType !== null) {
       setFormData(prev => ({
         ...prev,
-        userType: newUserType
+        role: newUserType
       }));
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.email && formData.password) {
-      // Herhangi bir email ve şifre ile giriş yapılabilir
-      const userInfo = {
-        email: formData.email,
-        userType: formData.userType, // 'patient', 'doctor' veya 'admin'
-      };
-      localStorage.setItem('userInfo', JSON.stringify(userInfo));
+    const result = await loginUser(formData);
+    if (result.success) {
+      localStorage.setItem('token', result.data.token);
+      localStorage.setItem('userInfo', JSON.stringify(result.data.user));
       localStorage.setItem('isLoggedIn', 'true');
-      // localStorage değişikliğini tetikle
       window.dispatchEvent(new Event('localStorageChange'));
       updateLoginStatus(true);
-      navigate('/');
+      
+      // Kullanıcı tipine göre yönlendirme
+      if (formData.userType === 'patient') {
+        navigate('/patient/appointments');
+      } else if (formData.userType === 'doctor') {
+        navigate('/doctor/patients');
+      } else {
+        navigate('/admin/patients');
+      }
     } else {
-      setError('Lütfen tüm alanları doldurun');
+      setError(result.message || 'Giriş başarısız');
     }
   };
 
@@ -89,70 +94,19 @@ function Login({ updateLoginStatus }) {
         </Typography>
 
         <ToggleButtonGroup
-          value={formData.userType}
+          value={formData.role}
           exclusive
           onChange={handleUserTypeChange}
           aria-label="user type"
           sx={{ mb: 3 }}
         >
-          <ToggleButton 
-            value="patient" 
-            aria-label="patient"
-            sx={{
-              backgroundColor: '#ffebee',
-              color: '#d32f2f',
-              '&.Mui-selected': {
-                backgroundColor: '#ef9a9a',
-                color: '#b71c1c',
-                '&:hover': {
-                  backgroundColor: '#e57373',
-                }
-              },
-              '&:hover': {
-                backgroundColor: '#ffcdd2',
-              }
-            }}
-          >
+          <ToggleButton value="patient" aria-label="patient">
             <Person sx={{ mr: 1 }} /> Hasta
           </ToggleButton>
-          <ToggleButton 
-            value="doctor" 
-            aria-label="doctor"
-            sx={{
-              backgroundColor: '#c8e6c9',
-              color: '#1b5e20',
-              '&.Mui-selected': {
-                backgroundColor: '#81c784',
-                color: '#1b5e20',
-                '&:hover': {
-                  backgroundColor: '#66bb6a',
-                }
-              },
-              '&:hover': {
-                backgroundColor: '#a5d6a7',
-              }
-            }}
-          >
+          <ToggleButton value="doctor" aria-label="doctor">
             <LocalHospital sx={{ mr: 1 }} /> Doktor
           </ToggleButton>
-          <ToggleButton 
-            value="admin" 
-            aria-label="admin"
-            sx={{
-              backgroundColor: '#e3f2fd',
-              color: '#1565c0',
-              '&.Mui-selected': {
-                backgroundColor: '#64b5f6',
-                color: '#0d47a1',
-                '&:hover': {
-                  backgroundColor: '#42a5f5',
-                }
-              },
-              '&:hover': {
-                backgroundColor: '#bbdefb',
-              }
-            }}
-          >
+          <ToggleButton value="admin" aria-label="admin">
             <AdminPanelSettings sx={{ mr: 1 }} /> Yönetici
           </ToggleButton>
         </ToggleButtonGroup>
@@ -168,24 +122,24 @@ function Login({ updateLoginStatus }) {
             margin="normal"
             required
             fullWidth
-            id="email"
+            id="Email"
             label="E-posta Adresi"
-            name="email"
+            name="Email"
             autoComplete="email"
             autoFocus
-            value={formData.email}
+            value={formData.Email}
             onChange={handleChange}
           />
           <TextField
             margin="normal"
             required
             fullWidth
-            name="password"
+            name="Sifre"
             label="Şifre"
             type={showPassword ? 'text' : 'password'}
-            id="password"
+            id="Sifre"
             autoComplete="current-password"
-            value={formData.password}
+            value={formData.Sifre}
             onChange={handleChange}
             InputProps={{
               endAdornment: (

@@ -21,51 +21,35 @@ import {
     Typography
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
+import { getProfile } from '../services/api';
 
 function Profile() {
   const [isEditing, setIsEditing] = useState(false);
-  const [userInfo, setUserInfo] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
-    department: '',
-    specialization: '',
-  });
+  const [user, setUser] = useState(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const storedUserInfo = localStorage.getItem('userInfo');
-    if (storedUserInfo) {
-      const parsedInfo = JSON.parse(storedUserInfo);
-      setUserInfo({
-        ...parsedInfo,
-        phone: parsedInfo.phone || '',
-        address: parsedInfo.address || '',
-        department: parsedInfo.department || '',
-        specialization: parsedInfo.specialization || '',
-      });
-    }
+    const fetchProfile = async () => {
+      const result = await getProfile();
+      if (result.success) setUser(result.data);
+      else setError(result.message);
+    };
+    fetchProfile();
   }, []);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setUserInfo((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  if (error) return <div>Hata: {error}</div>;
+  if (!user) return <div>Yükleniyor...</div>;
 
-  const handleSave = () => {
-    localStorage.setItem('userInfo', JSON.stringify(userInfo));
-    window.dispatchEvent(new Event('storage'));
-    setIsEditing(false);
-  };
-
-  const handleCancel = () => {
-    const storedUserInfo = JSON.parse(localStorage.getItem('userInfo'));
-    setUserInfo(storedUserInfo);
-    setIsEditing(false);
-  };
+  // Ortak alanlar
+  const adSoyad = user.Ad ? `${user.Ad} ${user.Soyad}` : '';
+  const email = user.Email || '';
+  const telefon = user.TelefonNumarasi || user.Telefon || '';
+  const adres = user.Adres || '';
+  const uzmanlik = user.UzmanlikAlani || '';
+  const calistigiHastane = user.CalistigiHastane || '';
+  const dogumTarihi = user.DogumTarihi ? new Date(user.DogumTarihi).toLocaleDateString() : '';
+  const cinsiyet = user.Cinsiyet || '';
+  const rol = user.role || user.Rol || '';
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
@@ -84,19 +68,22 @@ function Profile() {
                   fontSize: '3rem',
                 }}
               >
-                {userInfo.name?.charAt(0)}
+                {user.Ad?.charAt(0) || user.AdSoyad?.charAt(0) || 'K'}
               </Avatar>
               <Typography variant="h5" gutterBottom>
-                {userInfo.name}
+                {adSoyad}
               </Typography>
               <Typography variant="body1" color="text.secondary" gutterBottom>
-                {userInfo.email}
+                {email}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                {rol && rol.charAt(0).toUpperCase() + rol.slice(1)}
               </Typography>
               <Box sx={{ mt: 2 }}>
                 <Button
                   variant="contained"
                   startIcon={isEditing ? <SaveIcon /> : <EditIcon />}
-                  onClick={isEditing ? handleSave : () => setIsEditing(true)}
+                  onClick={() => setIsEditing(!isEditing)}
                   sx={{
                     bgcolor: '#1a237e',
                     '&:hover': { bgcolor: '#000051' },
@@ -108,7 +95,7 @@ function Profile() {
                   <Button
                     variant="outlined"
                     startIcon={<CancelIcon />}
-                    onClick={handleCancel}
+                    onClick={() => setIsEditing(false)}
                     sx={{ ml: 1 }}
                   >
                     İptal
@@ -131,10 +118,8 @@ function Profile() {
                   <TextField
                     fullWidth
                     label="Ad Soyad"
-                    name="name"
-                    value={userInfo.name}
-                    onChange={handleChange}
-                    disabled={!isEditing}
+                    value={adSoyad}
+                    disabled
                     InputProps={{
                       startAdornment: (
                         <AccountCircle sx={{ mr: 1, color: 'text.secondary' }} />
@@ -146,10 +131,8 @@ function Profile() {
                   <TextField
                     fullWidth
                     label="E-posta"
-                    name="email"
-                    value={userInfo.email}
-                    onChange={handleChange}
-                    disabled={!isEditing}
+                    value={email}
+                    disabled
                     InputProps={{
                       startAdornment: (
                         <EmailIcon sx={{ mr: 1, color: 'text.secondary' }} />
@@ -161,10 +144,8 @@ function Profile() {
                   <TextField
                     fullWidth
                     label="Telefon"
-                    name="phone"
-                    value={userInfo.phone}
-                    onChange={handleChange}
-                    disabled={!isEditing}
+                    value={telefon}
+                    disabled
                     InputProps={{
                       startAdornment: (
                         <PhoneIcon sx={{ mr: 1, color: 'text.secondary' }} />
@@ -176,10 +157,8 @@ function Profile() {
                   <TextField
                     fullWidth
                     label="Adres"
-                    name="address"
-                    value={userInfo.address}
-                    onChange={handleChange}
-                    disabled={!isEditing}
+                    value={adres}
+                    disabled
                     InputProps={{
                       startAdornment: (
                         <LocationIcon sx={{ mr: 1, color: 'text.secondary' }} />
@@ -187,6 +166,26 @@ function Profile() {
                     }}
                   />
                 </Grid>
+                {dogumTarihi && (
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Doğum Tarihi"
+                      value={dogumTarihi}
+                      disabled
+                    />
+                  </Grid>
+                )}
+                {cinsiyet && (
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Cinsiyet"
+                      value={cinsiyet}
+                      disabled
+                    />
+                  </Grid>
+                )}
               </Grid>
 
               <Divider sx={{ my: 4 }} />
@@ -195,36 +194,36 @@ function Profile() {
                 Profesyonel Bilgiler
               </Typography>
               <Grid container spacing={3}>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Departman"
-                    name="department"
-                    value={userInfo.department}
-                    onChange={handleChange}
-                    disabled={!isEditing}
-                    InputProps={{
-                      startAdornment: (
-                        <WorkIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                      ),
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Uzmanlık Alanı"
-                    name="specialization"
-                    value={userInfo.specialization}
-                    onChange={handleChange}
-                    disabled={!isEditing}
-                    InputProps={{
-                      startAdornment: (
-                        <WorkIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                      ),
-                    }}
-                  />
-                </Grid>
+                {uzmanlik && (
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Uzmanlık Alanı"
+                      value={uzmanlik}
+                      disabled
+                      InputProps={{
+                        startAdornment: (
+                          <WorkIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                        ),
+                      }}
+                    />
+                  </Grid>
+                )}
+                {calistigiHastane && (
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Çalıştığı Hastane"
+                      value={calistigiHastane}
+                      disabled
+                      InputProps={{
+                        startAdornment: (
+                          <WorkIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                        ),
+                      }}
+                    />
+                  </Grid>
+                )}
               </Grid>
             </CardContent>
           </Card>
