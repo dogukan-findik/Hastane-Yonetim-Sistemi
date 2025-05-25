@@ -1,12 +1,12 @@
 import { Add as AddIcon } from '@mui/icons-material';
-import { Link as RouterLink } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+
 
 import {
+  Alert,
   Box,
   Button,
   Chip,
+  Collapse,
   Container,
   Paper,
   Table,
@@ -15,43 +15,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Typography,
-  Alert,
-  Snackbar,
-} from '@mui/material';
 
-function Appointments() {
-  const [randevular, setRandevular] = useState([]);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  // const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-
-  // Tüm kullanıcılar için tüm randevuları çek
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get('http://localhost:5000/api/randevular/listele');
-        setRandevular(response.data);
-      } catch (error) {
-        console.error('Randevular yüklenirken hata:', error);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  // Randevu iptal etme
-  const handleCancelAppointment = async (randevuID) => {
-    try {
-      await axios.delete(`http://localhost:5000/api/randevu/sil/${randevuID}`);
-      // Listeyi yenile
-      const response = await axios.get('http://localhost:5000/api/randevular/listele');
-      setRandevular(response.data);
-    } catch (error) {
-      setError('Randevu iptal edilirken bir hata oluştu');
-      console.error('Randevu iptal hatası:', error);
-    }
-  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -68,19 +32,26 @@ function Appointments() {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Collapse in={showNotification}>
+        <Alert 
+          severity="success" 
+          sx={{ 
+            mb: 2,
+            fontSize: '1.1rem',
+            '& .MuiAlert-icon': {
+              fontSize: '2rem'
+            }
+          }}
+        >
+          Randevu talebiniz başarıyla alınmıştır.
+        </Alert>
+      </Collapse>
+
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
         <Typography variant="h4" component="h1">
-          Randevular
+          {isPatient ? 'Randevularım' : 'Randevular'}
         </Typography>
-        <Button
-          component={RouterLink}
-          to="/appointments/new"
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-        >
-          Yeni Randevu
-        </Button>
+
       </Box>
 
       <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError('')}>
@@ -100,7 +71,7 @@ function Appointments() {
           <TableHead>
             <TableRow>
               <TableCell>ID</TableCell>
-              <TableCell>Hasta</TableCell>
+              {!isPatient && <TableCell>Hasta</TableCell>}
               <TableCell>Doktor</TableCell>
               <TableCell>Tarih</TableCell>
               <TableCell>Saat</TableCell>
@@ -109,17 +80,7 @@ function Appointments() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {randevular.map((appointment) => (
-              <TableRow key={appointment._id}>
-                <TableCell>{appointment._id}</TableCell>
-                <TableCell>{appointment.HastaAdSoyad}</TableCell>
-                <TableCell>{appointment.DoktorAdSoyad}</TableCell>
-                <TableCell>
-                  {appointment.Tarih
-                    ? new Date(appointment.Tarih).toLocaleDateString('tr-TR')
-                    : ''}
-                </TableCell>
-                <TableCell>{appointment.Saat}</TableCell>
+
                 <TableCell>
                   <Chip
                     label={appointment.Durum}
@@ -128,21 +89,7 @@ function Appointments() {
                   />
                 </TableCell>
                 <TableCell>
-                  <Button
-                    size="small"
-                    color="primary"
-                    component={RouterLink}
-                    to={`/appointments/edit/${appointment._id}`}
-                  >
-                    Düzenle
-                  </Button>
-                  <Button
-                    size="small"
-                    color="error"
-                    onClick={() => handleCancelAppointment(appointment._id)}
-                  >
-                    İptal Et
-                  </Button>
+
                 </TableCell>
               </TableRow>
             ))}

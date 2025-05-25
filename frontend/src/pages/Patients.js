@@ -1,7 +1,9 @@
 import { Add as AddIcon } from '@mui/icons-material';
 import {
+    Alert,
     Box,
     Button,
+    Collapse,
     Container,
     Paper,
     Table,
@@ -12,47 +14,32 @@ import {
     TableRow,
     Typography,
 } from '@mui/material';
-import React, { useEffect, useState } from 'react';
-import { getHastalar } from '../services/api';
-import axios from 'axios';
 
-function Patients() {
-  const [hastalar, setHastalar] = useState([]);
-  const [randevular, setRandevular] = useState([]);
-
-  useEffect(() => {
-    // Kullanıcı bilgilerini localStorage'dan al
-    const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-    // Eğer doktor ise, sadece kendi hastalarını çek
-    if (userInfo && userInfo.role === 'doctor') {
-      getHastalar(userInfo._id).then(result => {
-        if (result.success) setHastalar(result.data);
-      });
-    } else {
-      getHastalar().then(result => {
-        if (result.success) setHastalar(result.data);
-      });
-    }
-
-    // Randevuları çek
-    axios.get(`http://localhost:5000/api/randevular/hasta/${userInfo._id}`)
-      .then(response => {
-        if (response.data.success) {
-          setRandevular(response.data.data);
-        }
-      })
-      .catch(error => {
-        console.error('Randevular çekerken hata oluştu:', error);
-      });
-  }, []);
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Collapse in={showNotification}>
+        <Alert 
+          severity="success" 
+          sx={{ 
+            mb: 2,
+            fontSize: '1.1rem',
+            '& .MuiAlert-icon': {
+              fontSize: '2rem'
+            }
+          }}
+        >
+          Hasta başarıyla eklendi!
+        </Alert>
+      </Collapse>
+
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
         <Typography variant="h4" component="h1">
           Hastalar
         </Typography>
         <Button
+          component={RouterLink}
+          to="/doctor/patients/new"
           variant="contained"
           color="primary"
           startIcon={<AddIcon />}

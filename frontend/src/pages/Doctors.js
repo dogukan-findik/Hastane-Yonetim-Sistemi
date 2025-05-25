@@ -1,23 +1,23 @@
 import { Add as AddIcon } from '@mui/icons-material';
 import {
-    Box,
-    Button,
-    Chip,
-    Container,
-    Paper,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Typography,
+  Box,
+  Button,
+  Chip,
+  Container,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
 function Doctors() {
-  const [randevular, setRandevular] = useState([]);
+
   // Örnek doktor verileri
   const doctors = [
     { id: 1, name: 'Dr. Ali Öztürk', specialty: 'Kardiyoloji', status: 'Aktif', patients: 45 },
@@ -46,13 +46,15 @@ function Doctors() {
         <Typography variant="h4" component="h1">
           Doktorlar
         </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-        >
-          Yeni Doktor Ekle
-        </Button>
+        {isAdmin && (
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+          >
+            Yeni Doktor Ekle
+          </Button>
+        )}
       </Box>
       <TableContainer component={Paper}>
         <Table>
@@ -62,8 +64,8 @@ function Doctors() {
               <TableCell>Ad Soyad</TableCell>
               <TableCell>Uzmanlık</TableCell>
               <TableCell>Durum</TableCell>
-              <TableCell>Hasta Sayısı</TableCell>
-              <TableCell>İşlemler</TableCell>
+              {!isPatient && <TableCell>Hasta Sayısı</TableCell>}
+              {!isPatient && <TableCell>İşlemler</TableCell>}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -79,15 +81,19 @@ function Doctors() {
                     size="small"
                   />
                 </TableCell>
-                <TableCell>{doctor.patients}</TableCell>
-                <TableCell>
-                  <Button size="small" color="primary">
-                    Düzenle
-                  </Button>
-                  <Button size="small" color="error">
-                    Sil
-                  </Button>
-                </TableCell>
+                {!isPatient && <TableCell>{doctor.patients}</TableCell>}
+                {!isPatient && (
+                  <TableCell>
+                    <Button size="small" color="primary">
+                      Düzenle
+                    </Button>
+                    {isAdmin && (
+                      <Button size="small" color="error">
+                        Sil
+                      </Button>
+                    )}
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>

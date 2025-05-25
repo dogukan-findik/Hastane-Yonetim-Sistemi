@@ -1,24 +1,24 @@
 import {
-    AdminPanelSettings,
-    LocalHospital,
-    Login as LoginIcon,
-    Person,
-    Visibility,
-    VisibilityOff
+  AdminPanelSettings,
+  LocalHospital,
+  Login as LoginIcon,
+  Person,
+  Visibility,
+  VisibilityOff
 } from '@mui/icons-material';
 import {
-    Alert,
-    Box,
-    Button,
-    Container,
-    IconButton,
-    InputAdornment,
-    Link,
-    Paper,
-    TextField,
-    ToggleButton,
-    ToggleButtonGroup,
-    Typography,
+  Alert,
+  Box,
+  Button,
+  Container,
+  IconButton,
+  InputAdornment,
+  Link,
+  Paper,
+  TextField,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
 } from '@mui/material';
 import React, { useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
@@ -60,7 +60,15 @@ function Login({ updateLoginStatus }) {
       localStorage.setItem('isLoggedIn', 'true');
       window.dispatchEvent(new Event('localStorageChange'));
       updateLoginStatus(true);
-      navigate('/');
+      
+      // Kullanıcı tipine göre yönlendirme
+      if (formData.userType === 'patient') {
+        navigate('/patient/appointments');
+      } else if (formData.userType === 'doctor') {
+        navigate('/doctor/patients');
+      } else {
+        navigate('/admin/patients');
+      }
     } else {
       setError(result.message || 'Giriş başarısız');
     }

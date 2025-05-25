@@ -4,12 +4,16 @@ const express = require("express");
 const connectDB = require("./config/db");
 const cors = require('cors');
 
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN,
+};
+
 // Middleware
-app.use(express.json());
-app.use(cors());
+
 
 // Veritabanına bağlan
 connectDB();
@@ -18,9 +22,7 @@ connectDB();
 const authRoutes = require("./routes/authRoutes");
 app.use("/api/auth", authRoutes);
 
-// Test route ekleyelim
-const testRoutes = require("./routes/testRoutes");
-app.use("/api/test", testRoutes);
+
 
 // Dashboard routes
 const dashboardRoutes = require("./routes/dashboardRoutes");
@@ -45,9 +47,5 @@ app.get("/", (req, res) => {
     res.send("API çalışıyor!");
 });
 
-app.use('/uploads', express.static('uploads'));
 
-// Sunucuyu başlat
-app.listen(PORT, () => {
-    console.log(`Server in çalıştığı port ${PORT}`);
 });
