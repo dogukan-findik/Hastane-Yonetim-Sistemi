@@ -2,10 +2,7 @@
 require("dotenv").config();
 const express = require("express");
 const connectDB = require("./config/db");
-const cors = require("cors");
-const helmet = require("helmet"); // eklendi
-const rateLimit = require("express-rate-limit");
-const mongoSanitize = require("express-mongo-sanitize");
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -15,15 +12,7 @@ const corsOptions = {
 };
 
 // Middleware
-app.use(helmet(corsOptions)); // HTTP header'larını güvenli hâle getirir
-app.use(cors()); // CORS politikalarını etkinleştirir
-app.use(express.json()); // JSON parse işlemi
-app.use(rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: "Çok fazla istek gönderildi."
-}));
-app.use(mongoSanitize());
+
 
 // Veritabanına bağlan
 connectDB();
