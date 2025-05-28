@@ -1,6 +1,4 @@
 import { Add as AddIcon } from '@mui/icons-material';
-
-
 import {
   Alert,
   Box,
@@ -9,13 +7,68 @@ import {
   Collapse,
   Container,
   Paper,
+  Snackbar,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  Typography
+} from '@mui/material';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
+function Appointments() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [appointments, setAppointments] = useState([]);
+  const [showNotification, setShowNotification] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [isPatient, setIsPatient] = useState(true); // Bu gerçek uygulamada context'ten gelecek
+
+  useEffect(() => {
+    // Bildirim gösterme kontrolü
+    if (location.state?.showNotification) {
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 5000);
+    }
+    
+    // Randevuları yükle
+    loadAppointments();
+  }, [location.state]);
+
+  const loadAppointments = () => {
+    // Örnek randevu verileri - gerçek uygulamada API'den gelecek
+    const mockAppointments = [
+      {
+        id: 1,
+        Hasta: 'Ahmet Yılmaz',
+        Doktor: 'Dr. Mehmet Kaya',
+        Tarih: '2024-03-25',
+        Saat: '10:30',
+        Durum: 'Onaylandı'
+      },
+      {
+        id: 2,
+        Hasta: 'Ayşe Demir',
+        Doktor: 'Dr. Zeynep Şahin',
+        Tarih: '2024-03-26',
+        Saat: '14:00',
+        Durum: 'Beklemede'
+      },
+      {
+        id: 3,
+        Hasta: 'Ali Öztürk',
+        Doktor: 'Dr. Fatma Yıldız',
+        Tarih: '2024-03-27',
+        Saat: '09:15',
+        Durum: 'İptal Edildi'
+      }
+    ];
+    setAppointments(mockAppointments);
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -28,6 +81,22 @@ import {
       default:
         return 'default';
     }
+  };
+
+  const handleNewAppointment = () => {
+    navigate('/new-appointment');
+  };
+
+  const handleCancelAppointment = (appointmentId) => {
+    // Randevu iptal etme işlemi
+    setAppointments(prev => 
+      prev.map(app => 
+        app.id === appointmentId 
+          ? { ...app, Durum: 'İptal Edildi' }
+          : app
+      )
+    );
+    setSuccess('Randevu başarıyla iptal edildi.');
   };
 
   return (
@@ -51,7 +120,16 @@ import {
         <Typography variant="h4" component="h1">
           {isPatient ? 'Randevularım' : 'Randevular'}
         </Typography>
-
+        
+        {isPatient && (
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleNewAppointment}
+          >
+            Yeni Randevu
+          </Button>
+        )}
       </Box>
 
       <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError('')}>
@@ -80,7 +158,13 @@ import {
             </TableRow>
           </TableHead>
           <TableBody>
-
+            {appointments.map((appointment) => (
+              <TableRow key={appointment.id}>
+                <TableCell>{appointment.id}</TableCell>
+                {!isPatient && <TableCell>{appointment.Hasta}</TableCell>}
+                <TableCell>{appointment.Doktor}</TableCell>
+                <TableCell>{appointment.Tarih}</TableCell>
+                <TableCell>{appointment.Saat}</TableCell>
                 <TableCell>
                   <Chip
                     label={appointment.Durum}
@@ -89,7 +173,16 @@ import {
                   />
                 </TableCell>
                 <TableCell>
-
+                  {appointment.Durum !== 'İptal Edildi' && (
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      size="small"
+                      onClick={() => handleCancelAppointment(appointment.id)}
+                    >
+                      İptal Et
+                    </Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))}

@@ -55,19 +55,35 @@ function Login({ updateLoginStatus }) {
     e.preventDefault();
     const result = await loginUser(formData);
     if (result.success) {
+      console.log('Login response:', result.data); // Debug için
+      
+      // Kullanıcı bilgilerini sakla
       localStorage.setItem('token', result.data.token);
       localStorage.setItem('userInfo', JSON.stringify(result.data.user));
       localStorage.setItem('isLoggedIn', 'true');
       window.dispatchEvent(new Event('localStorageChange'));
-      updateLoginStatus(true);
+      updateLoginStatus(true, result.data.user);
       
       // Kullanıcı tipine göre yönlendirme
-      if (formData.userType === 'patient') {
-        navigate('/patient/appointments');
-      } else if (formData.userType === 'doctor') {
-        navigate('/doctor/patients');
-      } else {
-        navigate('/admin/patients');
+      const userRole = result.data.user.userType || result.data.user.role || result.data.user.Rol;
+      console.log('User role from login:', userRole); // Debug için
+
+      switch(userRole?.toLowerCase()) {
+        case 'patient':
+        case 'hasta':
+          navigate('/patient/appointments');
+          break;
+        case 'doctor':
+        case 'doktor':
+          navigate('/doctor/dashboard');
+          break;
+        case 'admin':
+        case 'yönetici':
+          navigate('/admin/dashboard');
+          break;
+        default:
+          console.log('Unknown role:', userRole); // Debug için
+          navigate('/login');
       }
     } else {
       setError(result.message || 'Giriş başarısız');

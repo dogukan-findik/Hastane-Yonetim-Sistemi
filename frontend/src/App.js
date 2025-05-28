@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import NewAppointmentForm from './components/NewAppointmentForm';
-import AddPatient from './pages/AddPatient';
+import { AuthProvider } from './context/AuthContext';
 import Appointments from './pages/Appointments';
 import Dashboard from './pages/Dashboard';
 import Doctors from './pages/Doctors';
@@ -17,25 +17,26 @@ import Register from './pages/Register';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import Upload from './pages/Upload';
-import { AuthProvider, useAuth } from './context/AuthContext';
 
 function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userInfo, setUserInfo] = useState(null);
   const [appointments, setAppointments] = useState([]);
 
   useEffect(() => {
     const checkLoginStatus = () => {
       const loginStatus = localStorage.getItem('isLoggedIn') === 'true';
-      const userInfo = localStorage.getItem('userInfo');
+      const storedUserInfo = localStorage.getItem('userInfo');
       
-      if (loginStatus && userInfo) {
+      if (loginStatus && storedUserInfo) {
         setIsLoggedIn(true);
+        setUserInfo(JSON.parse(storedUserInfo));
       } else {
-        // Eğer userInfo yoksa veya loginStatus false ise tüm login bilgilerini temizle
         localStorage.removeItem('userInfo');
         localStorage.removeItem('isLoggedIn');
         setIsLoggedIn(false);
+        setUserInfo(null);
       }
     };
 
@@ -56,19 +57,15 @@ function App() {
     };
   }, []);
 
-  const updateLoginStatus = (status) => {
+  const updateLoginStatus = (status, userData = null) => {
     setIsLoggedIn(status);
-    if (!status) {
-      // Logout durumunda tüm login bilgilerini temizle
+    if (status && userData) {
+      setUserInfo(userData);
+    } else {
       localStorage.removeItem('userInfo');
       localStorage.removeItem('isLoggedIn');
+      setUserInfo(null);
     }
-  };
-
-  const handleAddAppointment = (appointmentData) => {
-    const newAppointments = [...appointments, appointmentData];
-    setAppointments(newAppointments);
-    localStorage.setItem('appointments', JSON.stringify(newAppointments));
   };
 
   const theme = useMemo(
@@ -91,18 +88,107 @@ function App() {
     [isDarkMode],
   );
 
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
+  const handleAddAppointment = (appointmentData) => {
+    const newAppointments = [...appointments, appointmentData];
+    setAppointments(newAppointments);
+    localStorage.setItem('appointments', JSON.stringify(newAppointments));
   };
 
+  const ProtectedRoute = ({ children }) => {
+    if (!isLoggedIn) {
+      return <Navigate to="/login" replace />;
+    }
 
+    // Role-based access control
+    const currentPath = window.location.pathname;
+    const isPatientRoute = currentPath.startsWith('/patient/');
+    const isDoctorRoute = currentPath.startsWith('/doctor/');
+    const isAdminRoute = currentPath.startsWith('/admin/');
+
+    if (userInfo?.role === 'patient' && !isPatientRoute && currentPath !== '/') {
+      return <Navigate to="/patient/appointments" replace />;
+    }
+    if (userInfo?.role === 'doctor' && !isDoctorRoute && currentPath !== '/') {
+      return <Navigate to="/doctor/dashboard" replace />;
+    }
+    if (userInfo?.role === 'admin' && !isAdminRoute && currentPath !== '/') {
+      return <Navigate to="/admin/dashboard" replace />;
     }
 
     return children;
   };
 
   return (
+    <AuthProvider>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Router>
+          {isLoggedIn && <Navbar toggleDarkMode={() => setIsDarkMode(!isDarkMode)} isDarkMode={isDarkMode} isLoggedIn={isLoggedIn} />}
+          <Routes>
+            <Route path="/login" element={<Login updateLoginStatus={updateLoginStatus} />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            
+            {/* Hasta Route'ları */}
+            <Route path="/patient/*" element={
+              <ProtectedRoute>
+                <Routes>
+                  <Route path="appointments" element={<Appointments />} />
+                  <Route path="reports" element={<Reports />} />
+                  <Route path="doctors" element={<Doctors />} />
+                  <Route path="upload" element={<Upload />} />
+                  <Route path="profile" element={<Profile />} />
+                  <Route path="settings" element={<Settings />} />
+                  <Route path="new-appointment" element={<NewAppointmentForm onAddAppointment={handleAddAppointment} />} />
+                </Routes>
+              </ProtectedRoute>
+            } />
 
+            {/* Doktor Route'ları */}
+            <Route path="/doctor/*" element={
+              <ProtectedRoute>
+                <Routes>
+                  <Route path="dashboard" element={<Dashboard />} />
+                  <Route path="patients" element={<Patients />} />
+                  <Route path="appointments" element={<Appointments />} />
+                  <Route path="reports" element={<Reports />} />
+                  <Route path="notifications" element={<Notifications />} />
+                  <Route path="profile" element={<Profile />} />
+                  <Route path="settings" element={<Settings />} />
+                </Routes>
+              </ProtectedRoute>
+            } />
+
+            {/* Admin Route'ları */}
+            <Route path="/admin/*" element={
+              <ProtectedRoute>
+                <Routes>
+                  <Route path="dashboard" element={<Dashboard />} />
+                  <Route path="patients" element={<Patients />} />
+                  <Route path="doctors" element={<Doctors />} />
+                  <Route path="appointments" element={<Appointments />} />
+                  <Route path="reports" element={<Reports />} />
+                  <Route path="notifications" element={<Notifications />} />
+                  <Route path="profile" element={<Profile />} />
+                  <Route path="settings" element={<Settings />} />
+                </Routes>
+              </ProtectedRoute>
+            } />
+
+            {/* Ana sayfa yönlendirmesi */}
+            <Route path="/" element={
+              <ProtectedRoute>
+                <Navigate to={
+                  userInfo?.role === 'patient' ? '/patient/appointments' :
+                  userInfo?.role === 'doctor' ? '/doctor/dashboard' :
+                  '/admin/dashboard'
+                } replace />
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </Router>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
 
