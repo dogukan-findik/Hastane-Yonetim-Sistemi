@@ -14,9 +14,8 @@ import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { addMonths, endOfMonth, format, isBefore, isWeekend } from 'date-fns';
 import trLocale from 'date-fns/locale/tr';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 
 // Örnek bölümler ve doktorlar
 const departments = [
@@ -65,11 +64,16 @@ function NewAppointmentForm({ onSubmit }) {
   const [selectedDoctor, setSelectedDoctor] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedHour, setSelectedHour] = useState('');
-
+  const [selectedMinute, setSelectedMinute] = useState('');
 
   const steps = ['Bölüm Seçimi', 'Doktor Seçimi', 'Tarih Seçimi', 'Saat Seçimi'];
 
+  const handleNext = () => {
+    setActiveStep((prevActiveStep) => prevActiveStep + 1);
+  };
 
+  const handleBack = () => {
+    setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
   const handleDepartmentChange = (departmentId) => {
@@ -108,10 +112,34 @@ function NewAppointmentForm({ onSubmit }) {
     return bookedAppointments[dateStr]?.[hour]?.includes(minute) || false;
   };
 
+  const handleSubmit = () => {
+    const appointmentData = {
+      department: departments.find(d => d.id === selectedDepartment)?.name,
+      doctor: doctors[selectedDepartment]?.find(d => d.id === selectedDoctor)?.name,
+      date: selectedDate,
+      time: `${selectedHour}:${selectedMinute}`,
+      id: Date.now(), // Temporary ID
+    };
 
+    if (onSubmit) {
+      onSubmit(appointmentData);
+    }
+    navigate('/appointments', { state: { showNotification: true } });
+  };
 
-    onSubmit(appointmentData);
-    navigate('/patient/appointments', { state: { showNotification: true } });
+  const canProceed = () => {
+    switch (activeStep) {
+      case 0:
+        return selectedDepartment !== '';
+      case 1:
+        return selectedDoctor !== '';
+      case 2:
+        return selectedDate !== null;
+      case 3:
+        return selectedHour !== '' && selectedMinute !== '';
+      default:
+        return false;
+    }
   };
 
   const renderStepContent = (step) => {
@@ -128,6 +156,8 @@ function NewAppointmentForm({ onSubmit }) {
                     cursor: 'pointer',
                     textAlign: 'center',
                     transition: 'all 0.3s ease',
+                    bgcolor: selectedDepartment === department.id ? 'primary.light' : 'background.paper',
+                    color: selectedDepartment === department.id ? 'white' : 'text.primary',
                     '&:hover': {
                       transform: 'translateY(-5px)',
                       boxShadow: 6,
@@ -155,6 +185,8 @@ function NewAppointmentForm({ onSubmit }) {
                     cursor: 'pointer',
                     textAlign: 'center',
                     transition: 'all 0.3s ease',
+                    bgcolor: selectedDoctor === doctor.id ? 'primary.light' : 'background.paper',
+                    color: selectedDoctor === doctor.id ? 'white' : 'text.primary',
                     '&:hover': {
                       transform: 'translateY(-5px)',
                       boxShadow: 6,
@@ -303,28 +335,37 @@ function NewAppointmentForm({ onSubmit }) {
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
           <Button
-            onClick={() => navigate('/patient/appointments')}
+            onClick={() => navigate('/appointments')}
             variant="outlined"
             color="primary"
           >
             İptal
           </Button>
-          <Box>
-            {activeStep > 0 && (
+          
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+              disabled={activeStep === 0}
+              onClick={handleBack}
+              variant="outlined"
+            >
+              Geri
+            </Button>
+            
+            {activeStep === steps.length - 1 ? (
               <Button
-                onClick={handleBack}
-                sx={{ mr: 1 }}
-              >
-                Geri
-              </Button>
-            )}
-            {activeStep === steps.length - 1 && (
-              <Button
-                variant="contained"
                 onClick={handleSubmit}
-                disabled={!selectedMinute || isSubmitting}
+                variant="contained"
+                disabled={!canProceed()}
               >
-                Randevu Al
+                Randevu Oluştur
+              </Button>
+            ) : (
+              <Button
+                onClick={handleNext}
+                variant="contained"
+                disabled={!canProceed()}
+              >
+                İleri
               </Button>
             )}
           </Box>

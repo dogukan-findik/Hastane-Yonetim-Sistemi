@@ -1,27 +1,26 @@
 import {
-    Assignment as AssignmentIcon,
-    Event as EventIcon,
-    LocalHospital as HospitalIcon,
-    People as PeopleIcon,
+  Assignment as AssignmentIcon,
+  Event as EventIcon,
+  LocalHospital as HospitalIcon,
+  People as PeopleIcon,
 } from '@mui/icons-material';
 import {
-    Box,
-    Card,
-    CardContent,
-    Container,
-    Grid,
-    Paper,
-    Typography,
-    List,
-    ListItem,
-    ListItemText,
-    Divider,
-    Button,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Container,
+  Divider,
+  Grid,
+  List,
+  ListItem,
+  ListItemText,
+  Paper,
+  Typography,
 } from '@mui/material';
-import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import React, { useEffect, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
-import UploadReport from './Upload';
 
 function Dashboard() {
   const [stats, setStats] = useState({
@@ -35,34 +34,34 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const fetchDashboardData = async () => {
+    try {
+      // İstatistikleri getir
+      const statsResponse = await axios.get('http://localhost:5000/api/dashboard/stats');
+      setStats(statsResponse.data);
+
+      // Yaklaşan randevuları getir
+      const appointmentsResponse = await axios.get('http://localhost:5000/api/randevu/listele');
+      const today = new Date();
+      const upcoming = appointmentsResponse.data
+        .filter(app => new Date(app.tarih) >= today)
+        .sort((a, b) => new Date(a.tarih) - new Date(b.tarih))
+        .slice(0, 5);
+      setUpcomingAppointments(upcoming);
+
+      // Son aktiviteleri getir
+      const activitiesResponse = await axios.get('http://localhost:5000/api/dashboard/activities');
+      setRecentActivities(activitiesResponse.data);
+
+      setLoading(false);
+    } catch (error) {
+      console.error('Dashboard veri getirme hatası:', error);
+      setError('Veriler yüklenirken bir hata oluştu');
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        // İstatistikleri getir
-        const statsResponse = await axios.get('http://localhost:5000/api/dashboard/stats');
-        setStats(statsResponse.data);
-
-        // Yaklaşan randevuları getir
-        const appointmentsResponse = await axios.get('http://localhost:5000/api/randevu/listele');
-        const today = new Date();
-        const upcoming = appointmentsResponse.data
-          .filter(app => new Date(app.tarih) >= today)
-          .sort((a, b) => new Date(a.tarih) - new Date(b.tarih))
-          .slice(0, 5);
-        setUpcomingAppointments(upcoming);
-
-        // Son aktiviteleri getir
-        const activitiesResponse = await axios.get('http://localhost:5000/api/dashboard/activities');
-        setRecentActivities(activitiesResponse.data);
-
-        setLoading(false);
-      } catch (error) {
-        console.error('Dashboard veri getirme hatası:', error);
-        setError('Veriler yüklenirken bir hata oluştu');
-        setLoading(false);
-      }
-    };
-
     fetchDashboardData();
   }, []);
 

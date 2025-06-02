@@ -13,7 +13,8 @@ const corsOptions = {
 };
 
 // Middleware
-
+app.use(cors(corsOptions));
+app.use(express.json());
 
 // Veritabanına bağlan
 connectDB();
@@ -47,5 +48,8 @@ app.get("/", (req, res) => {
     res.send("API çalışıyor!");
 });
 
-
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });
+
+

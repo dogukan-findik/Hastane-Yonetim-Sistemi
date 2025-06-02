@@ -160,3 +160,5 @@ router.get("/me", authMiddleware, async (req, res) => {
     res.json(user);
 });
 
+module.exports = router;
+
