@@ -1,22 +1,22 @@
 import {
-  Assignment as AssignmentIcon,
-  Event as EventIcon,
-  LocalHospital as HospitalIcon,
-  People as PeopleIcon,
+    Assignment as AssignmentIcon,
+    Event as EventIcon,
+    LocalHospital as HospitalIcon,
+    People as PeopleIcon,
 } from '@mui/icons-material';
 import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Container,
-  Divider,
-  Grid,
-  List,
-  ListItem,
-  ListItemText,
-  Paper,
-  Typography,
+    Box,
+    Button,
+    Card,
+    CardContent,
+    Container,
+    Divider,
+    Grid,
+    List,
+    ListItem,
+    ListItemText,
+    Paper,
+    Typography,
 } from '@mui/material';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
@@ -31,7 +31,6 @@ function Dashboard() {
   });
   const [upcomingAppointments, setUpcomingAppointments] = useState([]);
   const [recentActivities, setRecentActivities] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const fetchDashboardData = async () => {
@@ -52,25 +51,15 @@ function Dashboard() {
       // Son aktiviteleri getir
       const activitiesResponse = await axios.get('http://localhost:5000/api/dashboard/activities');
       setRecentActivities(activitiesResponse.data);
-
-      setLoading(false);
     } catch (error) {
       console.error('Dashboard veri getirme hatası:', error);
       setError('Veriler yüklenirken bir hata oluştu');
-      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
-
-  const handleUploadSuccess = () => {
-    // Dosya yüklendikten sonra yapılacak işlemler
-    console.log('Dosya başarıyla yüklendi');
-    // İsterseniz burada dashboard verilerini yenileyebilirsiniz
-    fetchDashboardData();
-  };
 
   const dashboardStats = [
     {

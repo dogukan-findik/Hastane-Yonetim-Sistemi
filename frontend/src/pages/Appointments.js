@@ -1,32 +1,32 @@
 import { Add as AddIcon } from '@mui/icons-material';
 import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  Collapse,
-  Container,
-  Paper,
-  Snackbar,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography
+    Alert,
+    Box,
+    Button,
+    Chip,
+    Collapse,
+    Container,
+    Paper,
+    Snackbar,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Typography
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-function Appointments() {
+function Appointments({ isAdminView = false }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [appointments, setAppointments] = useState([]);
   const [showNotification, setShowNotification] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [isPatient, setIsPatient] = useState(true); // Bu gerçek uygulamada context'ten gelecek
+  const [isPatient, setIsPatient] = useState(!isAdminView); // Admin view için false olacak
 
   useEffect(() => {
     // Bildirim gösterme kontrolü
@@ -118,10 +118,10 @@ function Appointments() {
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
         <Typography variant="h4" component="h1">
-          {isPatient ? 'Randevularım' : 'Randevular'}
+          {isAdminView ? 'Tüm Randevular' : (isPatient ? 'Randevularım' : 'Randevular')}
         </Typography>
         
-        {isPatient && (
+        {!isAdminView && isPatient && (
           <Button
             variant="contained"
             startIcon={<AddIcon />}

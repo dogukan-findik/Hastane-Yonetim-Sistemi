@@ -75,7 +75,7 @@ function Login({ updateLoginStatus }) {
           break;
         case 'doctor':
         case 'doktor':
-          navigate('/doctor/dashboard');
+          navigate('/doctor/patients');
           break;
         case 'admin':
         case 'yönetici':

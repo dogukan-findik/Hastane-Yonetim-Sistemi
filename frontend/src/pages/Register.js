@@ -1,23 +1,23 @@
 import {
-  AccountCircle,
-  LocalHospital,
-  Person,
-  Visibility,
-  VisibilityOff,
+    AccountCircle,
+    LocalHospital,
+    Person,
+    Visibility,
+    VisibilityOff,
 } from '@mui/icons-material';
 import {
-  Box,
-  Button,
-  Container,
-  IconButton,
-  InputAdornment,
-  Link,
-  MenuItem,
-  Paper,
-  TextField,
-  ToggleButton,
-  ToggleButtonGroup,
-  Typography,
+    Box,
+    Button,
+    Container,
+    IconButton,
+    InputAdornment,
+    Link,
+    MenuItem,
+    Paper,
+    TextField,
+    ToggleButton,
+    ToggleButtonGroup,
+    Typography,
 } from '@mui/material';
 import React, { useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
@@ -89,7 +89,7 @@ function Register() {
       localStorage.setItem('token', result.data.token);
       localStorage.setItem('userInfo', JSON.stringify(result.data.user));
       localStorage.setItem('isLoggedIn', 'true');
-
+      navigate('/dashboard');
     } else {
       setError(result.message || 'Kayıt işlemi başarısız');
     }
