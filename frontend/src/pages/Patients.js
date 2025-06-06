@@ -1,18 +1,18 @@
 import { Add as AddIcon } from '@mui/icons-material';
 import {
-  Alert,
-  Box,
-  Button,
-  Collapse,
-  Container,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
+    Alert,
+    Box,
+    Button,
+    Collapse,
+    Container,
+    Paper,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Typography,
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
@@ -84,12 +84,12 @@ function Patients() {
         </Typography>
         <Button
           component={RouterLink}
-          to="/add-patient"
+          to="/admin/new-patient"
           variant="contained"
           color="primary"
           startIcon={<AddIcon />}
         >
-          Yeni Hasta Ekle
+          Hasta Ekle
         </Button>
       </Box>
       <TableContainer component={Paper}>

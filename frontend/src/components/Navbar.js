@@ -23,12 +23,13 @@ import {
   Typography,
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 
 function Navbar({ isDarkMode, isLoggedIn }) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [userInfo, setUserInfo] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   // localStorage'dan userInfo'yu oku
   const readUserInfo = () => {
@@ -88,9 +89,9 @@ function Navbar({ isDarkMode, isLoggedIn }) {
       if (userInfo?.role === 'patient') {
         navigate('/patient/appointments');
       } else if (userInfo?.role === 'doctor') {
-        navigate('/doctor/dashboard');
+        navigate('/doctor/patients');
       } else if (userInfo?.role === 'admin') {
-        navigate('/admin/dashboard');
+        navigate('/admin/patients');
       }
     }
   };
@@ -105,7 +106,6 @@ function Navbar({ isDarkMode, isLoggedIn }) {
 
   // Doktor menü öğeleri
   const doctorMenuItems = [
-    { text: 'Dashboard', icon: <Assessment />, path: '/doctor/dashboard' },
     { text: 'Hastalarım', icon: <People />, path: '/doctor/patients' },
     { text: 'Randevular', icon: <EventNote />, path: '/doctor/appointments' },
     { text: 'Raporlar', icon: <Description />, path: '/doctor/reports' },
@@ -114,7 +114,6 @@ function Navbar({ isDarkMode, isLoggedIn }) {
 
   // Yönetici menü öğeleri
   const adminMenuItems = [
-    { text: 'Dashboard', icon: <Assessment />, path: '/admin/dashboard' },
     { text: 'Hastalar', icon: <People />, path: '/admin/patients' },
     { text: 'Doktorlar', icon: <LocalHospital />, path: '/admin/doctors' },
     { text: 'Randevular', icon: <EventNote />, path: '/admin/appointments' },
@@ -198,9 +197,23 @@ function Navbar({ isDarkMode, isLoggedIn }) {
               color="inherit"
               startIcon={item.icon}
               sx={{
-                color: 'white',
+                position: 'relative',
+                '&::after': {
+                  content: '""',
+                  position: 'absolute',
+                  bottom: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '3px',
+                  backgroundColor: '#40e0d0',
+                  transform: location.pathname === item.path ? 'scaleX(1)' : 'scaleX(0)',
+                  transition: 'transform 0.3s ease',
+                },
+                backgroundColor: location.pathname === item.path ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
                 '&:hover': {
-                  color: '#40e0d0',
+                  backgroundColor: location.pathname === item.path 
+                    ? 'rgba(255, 255, 255, 0.2)' 
+                    : 'rgba(255, 255, 255, 0.1)',
                 },
               }}
             >

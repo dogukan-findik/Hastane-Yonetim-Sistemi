@@ -4,9 +4,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import NewAppointmentForm from './components/NewAppointmentForm';
+import NewDoctorForm from './components/NewDoctorForm';
+import NewPatientForm from './components/NewPatientForm';
 import { AuthProvider } from './context/AuthContext';
 import Appointments from './pages/Appointments';
-import Dashboard from './pages/Dashboard';
 import Doctors from './pages/Doctors';
 import ForgotPassword from './pages/ForgotPassword';
 import Login from './pages/Login';
@@ -109,10 +110,10 @@ function App() {
       return <Navigate to="/patient/appointments" replace />;
     }
     if (userInfo?.role === 'doctor' && !isDoctorRoute && currentPath !== '/') {
-      return <Navigate to="/doctor/dashboard" replace />;
+      return <Navigate to="/doctor/patients" replace />;
     }
     if (userInfo?.role === 'admin' && !isAdminRoute && currentPath !== '/') {
-      return <Navigate to="/admin/dashboard" replace />;
+      return <Navigate to="/admin/patients" replace />;
     }
 
     return children;
@@ -148,7 +149,6 @@ function App() {
             <Route path="/doctor/*" element={
               <ProtectedRoute>
                 <Routes>
-                  <Route path="dashboard" element={<Dashboard />} />
                   <Route path="patients" element={<Patients />} />
                   <Route path="appointments" element={<Appointments />} />
                   <Route path="reports" element={<Reports />} />
@@ -163,15 +163,23 @@ function App() {
             <Route path="/admin/*" element={
               <ProtectedRoute>
                 <Routes>
-                  <Route path="dashboard" element={<Dashboard />} />
                   <Route path="patients" element={<Patients />} />
                   <Route path="doctors" element={<Doctors />} />
-                  <Route path="appointments" element={<Appointments />} />
+                  <Route path="appointments" element={<Appointments isAdminView={true} />} />
                   <Route path="reports" element={<Reports />} />
                   <Route path="notifications" element={<Notifications />} />
                   <Route path="profile" element={<Profile />} />
                   <Route path="settings" element={<Settings />} />
+                  <Route path="new-patient" element={<NewPatientForm />} />
+                  <Route path="new-doctor" element={<NewDoctorForm />} />
                 </Routes>
+              </ProtectedRoute>
+            } />
+
+            {/* Genel Route'lar */}
+            <Route path="/add-patient" element={
+              <ProtectedRoute>
+                <NewPatientForm />
               </ProtectedRoute>
             } />
 
@@ -180,8 +188,8 @@ function App() {
               <ProtectedRoute>
                 <Navigate to={
                   userInfo?.role === 'patient' ? '/patient/appointments' :
-                  userInfo?.role === 'doctor' ? '/doctor/dashboard' :
-                  '/admin/dashboard'
+                  userInfo?.role === 'doctor' ? '/doctor/patients' :
+                  '/admin/patients'
                 } replace />
               </ProtectedRoute>
             } />

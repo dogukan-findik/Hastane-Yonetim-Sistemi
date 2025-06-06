@@ -14,8 +14,10 @@ import {
   Typography,
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function Doctors() {
+  const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
   const [isPatient, setIsPatient] = useState(true);
 
@@ -55,8 +57,9 @@ function Doctors() {
             variant="contained"
             color="primary"
             startIcon={<AddIcon />}
+            onClick={() => navigate('/admin/new-doctor')}
           >
-            Yeni Doktor Ekle
+            Doktor Ekle
           </Button>
         )}
       </Box>
