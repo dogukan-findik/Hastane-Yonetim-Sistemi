@@ -30,4 +30,14 @@ const authenticateUser = async (req, res, next) => {
     }
 };
 
-module.exports = { authenticateUser };
+const authorizeRoles = (...allowedRoles) => {
+    return (req, res, next) => {
+        const userRole = req.user?.role;
+        if (!userRole || !allowedRoles.includes(userRole)) {
+            return res.status(403).json({ message: "Yetkisiz erişim: Role uygun değil" });
+        }
+        next();
+    };
+};
+
+module.exports = { authenticateUser, authorizeRoles };

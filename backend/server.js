@@ -2,7 +2,12 @@
 require("dotenv").config();
 const express = require("express");
 const connectDB = require("./config/db");
-const cors = require('cors');
+const cors = require("cors");
+const helmet = require("helmet"); // eklendi
+const rateLimit = require("express-rate-limit");
+const mongoSanitize = require("express-mongo-sanitize");
+const xss = require("xss-clean");
+const hpp = require("hpp");
 
 
 const app = express();
@@ -13,8 +18,17 @@ const corsOptions = {
 };
 
 // Middleware
+app.use(helmet()); // HTTP header'larını güvenli hâle getirir
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: "Çok fazla istek gönderildi."
+}));
+app.use(mongoSanitize());
+app.use(xss()); // XSS saldırılarını temizler
+app.use(hpp()); // HTTP parametre kirliliğini önler
 
 // Veritabanına bağlan
 connectDB();
@@ -47,6 +61,8 @@ app.use('/api/raporlar', raporRoutes);
 app.get("/", (req, res) => {
     res.send("API çalışıyor!");
 });
+
+app.use('/uploads', express.static('uploads'));
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
