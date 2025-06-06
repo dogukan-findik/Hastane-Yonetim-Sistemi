@@ -14,9 +14,12 @@ import {
   Typography,
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 function Doctors() {
+  const navigate = useNavigate();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isPatient, setIsPatient] = useState(true);
 
   // Örnek doktor verileri
   const doctors = [
@@ -27,10 +30,13 @@ function Doctors() {
   ];
 
   useEffect(() => {
+    // Kullanıcı rolünü belirle
+    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    setIsAdmin(userInfo.userType === 'admin');
+    setIsPatient(userInfo.userType === 'patient');
+
     const fetchRandevular = async () => {
       try {
-        // userInfo değişkenini uygun şekilde tanımlamalısın!
-        // const userInfo = JSON.parse(localStorage.getItem('userInfo'));
         // const response = await axios.get(`http://localhost:5000/api/randevular/doktor/${userInfo._id}`);
         // setRandevular(response.data);
       } catch (error) {
@@ -51,8 +57,9 @@ function Doctors() {
             variant="contained"
             color="primary"
             startIcon={<AddIcon />}
+            onClick={() => navigate('/admin/new-doctor')}
           >
-            Yeni Doktor Ekle
+            Doktor Ekle
           </Button>
         )}
       </Box>

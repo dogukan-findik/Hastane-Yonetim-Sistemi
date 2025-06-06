@@ -23,18 +23,21 @@ import {
   Typography,
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 
 function Navbar({ isDarkMode, isLoggedIn }) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [userInfo, setUserInfo] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   // localStorage'dan userInfo'yu oku
   const readUserInfo = () => {
     const storedUserInfo = localStorage.getItem('userInfo');
     if (storedUserInfo) {
-      setUserInfo(JSON.parse(storedUserInfo));
+      const parsedUserInfo = JSON.parse(storedUserInfo);
+      console.log('Stored userInfo:', parsedUserInfo); // Debug için
+      setUserInfo(parsedUserInfo);
     } else {
       setUserInfo(null);
     }
@@ -52,7 +55,6 @@ function Navbar({ isDarkMode, isLoggedIn }) {
     };
 
     window.addEventListener('storage', handleStorageChange);
-    // Aynı sekmedeki değişiklikleri de dinle
     window.addEventListener('localStorageChange', handleStorageChange);
 
     return () => {
@@ -72,6 +74,7 @@ function Navbar({ isDarkMode, isLoggedIn }) {
   const handleLogout = () => {
     localStorage.removeItem('userInfo');
     localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('token');
     setUserInfo(null);
     handleClose();
     navigate('/login');
@@ -83,12 +86,11 @@ function Navbar({ isDarkMode, isLoggedIn }) {
       navigate('/login');
     } else {
       e.preventDefault();
-      const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-      if (userInfo?.userType === 'patient') {
+      if (userInfo?.role === 'patient') {
         navigate('/patient/appointments');
-      } else if (userInfo?.userType === 'doctor') {
+      } else if (userInfo?.role === 'doctor') {
         navigate('/doctor/patients');
-      } else if (userInfo?.userType === 'admin') {
+      } else if (userInfo?.role === 'admin') {
         navigate('/admin/patients');
       }
     }
@@ -98,6 +100,7 @@ function Navbar({ isDarkMode, isLoggedIn }) {
   const patientMenuItems = [
     { text: 'Randevularım', icon: <EventNote />, path: '/patient/appointments' },
     { text: 'Raporlarım', icon: <Description />, path: '/patient/reports' },
+    { text: 'Doktorlar', icon: <LocalHospital />, path: '/patient/doctors' },
     { text: 'Dosya Yükle', icon: <Upload />, path: '/patient/upload' },
   ];
 
@@ -120,16 +123,25 @@ function Navbar({ isDarkMode, isLoggedIn }) {
 
   // Kullanıcı tipine göre menü öğelerini seç
   const getMenuItems = () => {
+    console.log('Current userInfo:', userInfo); // Debug için
     if (!userInfo || !isLoggedIn) return [];
     
-    switch (userInfo.userType) {
+    // Rol kontrolü - userType veya role property'sini kontrol et
+    const userRole = userInfo.userType || userInfo.role || userInfo.Rol;
+    console.log('User role:', userRole); // Debug için
+    
+    switch (userRole?.toLowerCase()) {
       case 'patient':
+      case 'hasta':
         return patientMenuItems;
       case 'doctor':
+      case 'doktor':
         return doctorMenuItems;
       case 'admin':
+      case 'yönetici':
         return adminMenuItems;
       default:
+        console.log('No matching role found'); // Debug için
         return [];
     }
   };
@@ -161,7 +173,7 @@ function Navbar({ isDarkMode, isLoggedIn }) {
             variant="h5"
             sx={{
               fontWeight: 'bold',
-              background: 'linear-gradient(45deg, #40e0d0 30%, #1a237e 90%)',
+              background: 'linear-gradient(45deg, #40e0d0 30%, #ffffff 90%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
             }}
@@ -170,39 +182,51 @@ function Navbar({ isDarkMode, isLoggedIn }) {
           </Typography>
         </Box>
 
-        {isLoggedIn && userInfo && (
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: 2,
-            flexGrow: 1,
-            justifyContent: 'center',
-            ml: -10
-          }}>
-            {getMenuItems().map((item, index) => (
-              <Button
-                key={index}
-                component={RouterLink}
-                to={item.path}
-                color="inherit"
-                startIcon={item.icon}
-                sx={{
-                  '&:hover': {
-                    color: '#40e0d0',
-                  },
-                }}
-              >
-                {item.text}
-              </Button>
-            ))}
-          </Box>
-        )}
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: 2,
+          flexGrow: 1,
+          justifyContent: 'center',
+        }}>
+          {getMenuItems().map((item, index) => (
+            <Button
+              key={index}
+              component={RouterLink}
+              to={item.path}
+              color="inherit"
+              startIcon={item.icon}
+              sx={{
+                position: 'relative',
+                '&::after': {
+                  content: '""',
+                  position: 'absolute',
+                  bottom: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '3px',
+                  backgroundColor: '#40e0d0',
+                  transform: location.pathname === item.path ? 'scaleX(1)' : 'scaleX(0)',
+                  transition: 'transform 0.3s ease',
+                },
+                backgroundColor: location.pathname === item.path ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                '&:hover': {
+                  backgroundColor: location.pathname === item.path 
+                    ? 'rgba(255, 255, 255, 0.2)' 
+                    : 'rgba(255, 255, 255, 0.1)',
+                },
+              }}
+            >
+              {item.text}
+            </Button>
+          ))}
+        </Box>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, ml: 'auto' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           {isLoggedIn && userInfo ? (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography variant="body2" sx={{ color: 'white', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 1 }}>
-                {userInfo.name ? userInfo.name : userInfo.email}
+            <>
+              <Typography variant="body2" sx={{ color: 'white', fontWeight: 'bold', display: { xs: 'none', sm: 'block' } }}>
+                {userInfo.Ad ? `${userInfo.Ad} ${userInfo.Soyad}` : userInfo.Email}
               </Typography>
               <IconButton
                 size="large"
@@ -213,7 +237,7 @@ function Navbar({ isDarkMode, isLoggedIn }) {
                 color="inherit"
               >
                 <Avatar sx={{ width: 32, height: 32, bgcolor: '#40e0d0' }}>
-                  {userInfo.name ? userInfo.name.charAt(0) : userInfo.email?.charAt(0)}
+                  {userInfo.Ad ? userInfo.Ad.charAt(0) : userInfo.Email?.charAt(0)}
                 </Avatar>
               </IconButton>
               <Menu
@@ -233,7 +257,7 @@ function Navbar({ isDarkMode, isLoggedIn }) {
               >
                 <Box sx={{ px: 2, py: 1 }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                    {userInfo.name ? userInfo.name : userInfo.email}
+                    {userInfo.Ad ? `${userInfo.Ad} ${userInfo.Soyad}` : userInfo.Email}
                   </Typography>
                 </Box>
                 <Divider />
@@ -248,7 +272,7 @@ function Navbar({ isDarkMode, isLoggedIn }) {
                   <Logout sx={{ mr: 1, color: '#d32f2f' }} /> Çıkış Yap
                 </MenuItem>
               </Menu>
-            </Box>
+            </>
           ) : (
             <Button
               component={RouterLink}
@@ -256,6 +280,7 @@ function Navbar({ isDarkMode, isLoggedIn }) {
               color="inherit"
               startIcon={<AccountCircle />}
               sx={{
+                color: 'white',
                 '&:hover': {
                   color: '#40e0d0',
                 },
