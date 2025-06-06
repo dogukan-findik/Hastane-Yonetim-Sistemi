@@ -1,13 +1,16 @@
 // controllers/patientController.js
 const hastaServices = require("../services/HastaServices");
+const logger = require('../utils/logger');
 
 // Hasta ekleme
 exports.HastaEkle = async (req, res) => {
     try {
+        logger.info(`Hasta ekleme isteği: ${JSON.stringify(req.body)}`);
         const yeniHasta = await hastaServices.hastaEkle(req.body);
+        logger.info(`Hasta başarıyla eklendi: ${yeniHasta._id}`);
         res.status(201).json({ message: "Hasta başarıyla eklendi", hasta: yeniHasta });
     } catch (error) {
-        console.error("Hasta ekleme hatası:", error);
+        logger.error(`Hasta ekleme hatası: ${error.message}`);
         res.status(500).json({ message: error.message });
     }
 };
@@ -15,10 +18,11 @@ exports.HastaEkle = async (req, res) => {
 // Tüm hastaları listeleme
 exports.HastaListele = async (req, res) => {
     try {
+        logger.info('Tüm hastaları listeleme isteği');
         const hastalar = await hastaServices.tumHastalariListele();
         res.status(200).json(hastalar);
     } catch (error) {
-        console.error("Hasta listeleme hatası:", error);
+        logger.error(`Hasta listeleme hatası: ${error.message}`);
         res.status(500).json({ message: error.message });
     }
 };
@@ -26,10 +30,11 @@ exports.HastaListele = async (req, res) => {
 // Tek bir hastayı ID ile bulma
 exports.HastaBul = async (req, res) => {
     try {
+        logger.info(`Hasta bulma isteği: ${req.params.hastaID}`);
         const hasta = await hastaServices.hastaBul(req.params.hastaID);
         res.status(200).json(hasta);
     } catch (error) {
-        console.error("Hasta bulma hatası:", error);
+        logger.error(`Hasta bulma hatası: ${error.message}`);
         res.status(500).json({ message: error.message });
     }
 };
@@ -37,10 +42,12 @@ exports.HastaBul = async (req, res) => {
 // Hasta güncelleme
 exports.HastaGüncelleme = async (req, res) => {
     try {
+        logger.info(`Hasta güncelleme isteği: ${req.params.hastaID}`);
         const guncellenmisHasta = await hastaServices.hastaGuncelle(req.params.hastaID, req.body);
+        logger.info(`Hasta başarıyla güncellendi: ${guncellenmisHasta._id}`);
         res.status(200).json({ message: "Hasta başarıyla güncellendi", hasta: guncellenmisHasta });
     } catch (error) {
-        console.error("Hasta güncelleme hatası:", error);
+        logger.error(`Hasta güncelleme hatası: ${error.message}`);
         res.status(500).json({ message: error.message });
     }
 };
@@ -48,10 +55,12 @@ exports.HastaGüncelleme = async (req, res) => {
 // Hasta silme
 exports.HastaSilme = async (req, res) => {
     try {
+        logger.info(`Hasta silme isteği: ${req.params.hastaID}`);
         await hastaServices.hastaSil(req.params.hastaID);
+        logger.info(`Hasta başarıyla silindi: ${req.params.hastaID}`);
         res.status(200).json({ message: "Hasta ve ilgili randevular başarıyla silindi" });
     } catch (error) {
-        console.error("Hasta silme hatası:", error);
+        logger.error(`Hasta silme hatası: ${error.message}`);
         res.status(500).json({ message: error.message });
     }
 };
@@ -59,13 +68,12 @@ exports.HastaSilme = async (req, res) => {
 // Belirli bir doktora randevu almış hastaları listeleme
 exports.DoktorunHastalari = async (req, res) => {
     try {
+        logger.info(`Doktorun hastaları listeleme isteği: ${req.params.doktorID}`);
         const doktorID = req.params.doktorID;
-        console.log('GELEN doktorID:', doktorID);
         const hastalar = await hastaServices.doktorunHastalari(doktorID);
-        console.log('DÖNEN hastalar:', hastalar);
         res.status(200).json(hastalar);
     } catch (error) {
-        console.error("Doktorun hastaları getirilirken hata:", error);
+        logger.error(`Doktorun hastaları getirilirken hata: ${error.message}`);
         res.status(500).json({ message: error.message });
     }
 };
