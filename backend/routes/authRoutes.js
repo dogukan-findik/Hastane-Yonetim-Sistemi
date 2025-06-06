@@ -5,10 +5,11 @@ const jwt = require("jsonwebtoken");
 const Hasta = require("../models/hasta");
 const Doktor = require("../models/doktor");
 const Admin = require("../models/admin");
+const logger = require('../utils/logger');
 
 // Kayıt olma
 router.post("/register", async (req, res) => {
-    console.log('Gelen istek:', req.body);
+    logger.info(`Kayıt isteği: ${JSON.stringify(req.body)}`);
     try {
         const { role } = req.body;
         let Model;
@@ -26,6 +27,7 @@ router.post("/register", async (req, res) => {
                 CalistigiHastane,
                 Telefon
             };
+            logger.info(`Doktor olarak kayıt işlemi başlatıldı: ${Email}`);
         } else {
             Model = Hasta;
             // Hasta için gerekli alanlar
@@ -40,16 +42,19 @@ router.post("/register", async (req, res) => {
                 TelefonNumarasi,
                 Adres
             };
+            logger.info(`Hasta olarak kayıt işlemi başlatıldı: ${Email}`);
         }
 
         // Email kontrolü
         let user = await Model.findOne({ Email: userData.Email });
         if (user) {
+            logger.warn(`Kayıt olunmak istenen email zaten kayıtlı: ${userData.Email}`);
             return res.status(400).json({ message: "Bu email zaten kayıtlı" });
         }
 
         user = new Model(userData);
         await user.save();
+        logger.info(`Kayıt başarılı: ${userData.Email} (${role})`);
 
         // JWT token oluşturma
         const payload = {
@@ -71,14 +76,14 @@ router.post("/register", async (req, res) => {
             }
         );
     } catch (err) {
-        console.error(err.message);
+        logger.error(`Kayıt sırasında hata: ${err.message}`);
         res.status(500).send("Sunucu hatası");
     }
 });
 
 // Giriş yapma
 router.post("/login", async (req, res) => {
-    console.log('Gelen istek:', req.body);
+    logger.info(`Giriş isteği: ${JSON.stringify(req.body)}`);
     try {
         const { Email, Sifre, role } = req.body;
         let Model;
@@ -93,6 +98,7 @@ router.post("/login", async (req, res) => {
         // Kullanıcı kontrolü
         let user = await Model.findOne({ Email });
         if (!user) {
+            logger.warn(`Giriş başarısız, kullanıcı bulunamadı: ${Email}`);
             return res.status(400).json({ message: "Geçersiz kimlik bilgileri" });
         }
 
@@ -106,6 +112,7 @@ router.post("/login", async (req, res) => {
             isMatch = await bcrypt.compare(Sifre, user.Sifre);
         }
         if (!isMatch) {
+            logger.warn(`Giriş başarısız, şifre hatalı: ${Email}`);
             return res.status(400).json({ message: "Geçersiz kimlik bilgileri" });
         }
 
@@ -125,11 +132,12 @@ router.post("/login", async (req, res) => {
                 if (err) throw err;
                 const userObj = user.toObject ? user.toObject() : user;
                 userObj.userType = role;
+                logger.info(`Giriş başarılı: ${Email} (${role})`);
                 res.json({ token, user: userObj });
             }
         );
     } catch (err) {
-        console.error(err.message);
+        logger.error(`Giriş sırasında hata: ${err.message}`);
         res.status(500).send("Sunucu hatası");
     }
 });
