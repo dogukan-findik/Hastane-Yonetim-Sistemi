@@ -91,7 +91,7 @@ function Navbar({ isDarkMode, isLoggedIn }) {
       } else if (userInfo?.role === 'doctor') {
         navigate('/doctor/patients');
       } else if (userInfo?.role === 'admin') {
-        navigate('/admin/dashboard');
+        navigate('/admin/patients');
       }
     }
   };
@@ -114,7 +114,6 @@ function Navbar({ isDarkMode, isLoggedIn }) {
 
   // Yönetici menü öğeleri
   const adminMenuItems = [
-    { text: 'Dashboard', icon: <Assessment />, path: '/admin/dashboard' },
     { text: 'Hastalar', icon: <People />, path: '/admin/patients' },
     { text: 'Doktorlar', icon: <LocalHospital />, path: '/admin/doctors' },
     { text: 'Randevular', icon: <EventNote />, path: '/admin/appointments' },

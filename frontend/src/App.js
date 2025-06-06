@@ -8,7 +8,6 @@ import NewDoctorForm from './components/NewDoctorForm';
 import NewPatientForm from './components/NewPatientForm';
 import { AuthProvider } from './context/AuthContext';
 import Appointments from './pages/Appointments';
-import Dashboard from './pages/Dashboard';
 import Doctors from './pages/Doctors';
 import ForgotPassword from './pages/ForgotPassword';
 import Login from './pages/Login';
@@ -114,7 +113,7 @@ function App() {
       return <Navigate to="/doctor/patients" replace />;
     }
     if (userInfo?.role === 'admin' && !isAdminRoute && currentPath !== '/') {
-      return <Navigate to="/admin/dashboard" replace />;
+      return <Navigate to="/admin/patients" replace />;
     }
 
     return children;
@@ -164,7 +163,6 @@ function App() {
             <Route path="/admin/*" element={
               <ProtectedRoute>
                 <Routes>
-                  <Route path="dashboard" element={<Dashboard />} />
                   <Route path="patients" element={<Patients />} />
                   <Route path="doctors" element={<Doctors />} />
                   <Route path="appointments" element={<Appointments isAdminView={true} />} />
@@ -191,7 +189,7 @@ function App() {
                 <Navigate to={
                   userInfo?.role === 'patient' ? '/patient/appointments' :
                   userInfo?.role === 'doctor' ? '/doctor/patients' :
-                  '/admin/dashboard'
+                  '/admin/patients'
                 } replace />
               </ProtectedRoute>
             } />

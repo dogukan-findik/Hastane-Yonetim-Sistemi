@@ -26,9 +26,13 @@ function Appointments({ isAdminView = false }) {
   const [showNotification, setShowNotification] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [isPatient, setIsPatient] = useState(!isAdminView); // Admin view için false olacak
+  const [isPatient, setIsPatient] = useState(false);
 
   useEffect(() => {
+    // Kullanıcı rolünü belirle
+    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    setIsPatient(userInfo.role === 'patient');
+    
     // Bildirim gösterme kontrolü
     if (location.state?.showNotification) {
       setShowNotification(true);
@@ -121,7 +125,7 @@ function Appointments({ isAdminView = false }) {
           {isAdminView ? 'Tüm Randevular' : (isPatient ? 'Randevularım' : 'Randevular')}
         </Typography>
         
-        {!isAdminView && isPatient && (
+        {isPatient && (
           <Button
             variant="contained"
             startIcon={<AddIcon />}
