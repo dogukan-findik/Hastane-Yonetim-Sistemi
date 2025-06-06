@@ -1,26 +1,37 @@
 import { Send as SendIcon } from '@mui/icons-material';
 import {
-    Alert,
-    Box,
-    Button,
-    Container,
-    Link,
-    Paper,
-    TextField,
-    Typography,
+  Alert,
+  Box,
+  Button,
+  Container,
+  Link,
+  Paper,
+  TextField,
+  Typography,
 } from '@mui/material';
 import React, { useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
+import { forgotPassword } from '../services/api';
 
 function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Şifre sıfırlama işlemleri burada yapılacak
-    console.log('Şifre sıfırlama e-postası gönderiliyor:', email);
-    setIsSubmitted(true);
+    setError('');
+
+    try {
+      const result = await forgotPassword(email);
+      if (result.success) {
+        setIsSubmitted(true);
+      } else {
+        setError(result.message || 'Şifre sıfırlama işlemi başarısız oldu');
+      }
+    } catch (error) {
+      setError('Bir hata oluştu. Lütfen tekrar deneyin.');
+    }
   };
 
   return (
@@ -41,6 +52,12 @@ function ForgotPassword() {
         >
           Şifremi Unuttum
         </Typography>
+
+        {error && (
+          <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
+            {error}
+          </Alert>
+        )}
 
         {isSubmitted ? (
           <Box sx={{ width: '100%', textAlign: 'center' }}>

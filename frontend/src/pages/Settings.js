@@ -19,9 +19,12 @@ import {
     TextField,
     Typography
 } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { getSettings, updateSettings, updatePassword } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 function Settings({ isDarkMode, toggleDarkMode }) {
+    const { user } = useAuth();
     const [settings, setSettings] = useState({
         emailNotifications: true,
         smsNotifications: false,
@@ -43,23 +46,63 @@ function Settings({ isDarkMode, toggleDarkMode }) {
         severity: 'success',
     });
 
-    useEffect(() => {
-        const storedSettings = localStorage.getItem('userSettings');
-        if (storedSettings) {
-            setSettings(JSON.parse(storedSettings));
-        }
-    }, []);
+    const [loading, setLoading] = useState(true);
 
-    const handleSettingChange = (setting) => (event) => {
+    const loadSettings = useCallback(async () => {
+        if (!user) return;
+
+        try {
+            const response = await getSettings(user._id);
+            if (response.success) {
+                setSettings(response.data);
+            } else {
+                setAlert({
+                    open: true,
+                    message: response.message,
+                    severity: 'error'
+                });
+            }
+        } catch (error) {
+            setAlert({
+                open: true,
+                message: 'Ayarlar yüklenirken bir hata oluştu',
+                severity: 'error'
+            });
+        } finally {
+            setLoading(false);
+        }
+    }, [user]);
+
+    useEffect(() => {
+        loadSettings();
+    }, [loadSettings]);
+
+    const handleSettingChange = async (setting) => async (event) => {
         const newSettings = {
             ...settings,
             [setting]: event.target.checked,
         };
         setSettings(newSettings);
-        localStorage.setItem('userSettings', JSON.stringify(newSettings));
 
-        if (setting === 'darkMode') {
-            toggleDarkMode();
+        try {
+            const result = await updateSettings(user._id, { [setting]: event.target.checked });
+            if (!result.success) {
+                setAlert({
+                    open: true,
+                    message: result.message || 'Ayar güncellenirken bir hata oluştu',
+                    severity: 'error'
+                });
+            }
+
+            if (setting === 'darkMode') {
+                toggleDarkMode();
+            }
+        } catch (error) {
+            setAlert({
+                open: true,
+                message: 'Ayar güncellenirken bir hata oluştu',
+                severity: 'error'
+            });
         }
     };
 
@@ -71,7 +114,7 @@ function Settings({ isDarkMode, toggleDarkMode }) {
         }));
     };
 
-    const handlePasswordUpdate = () => {
+    const handlePasswordUpdate = async () => {
         if (password.new !== password.confirm) {
             setAlert({
                 open: true,
@@ -81,25 +124,49 @@ function Settings({ isDarkMode, toggleDarkMode }) {
             return;
         }
 
-        // Burada şifre güncelleme API'si çağrılacak
-        console.log('Şifre güncellendi:', password);
-
-        setAlert({
-            open: true,
-            message: 'Şifreniz başarıyla güncellendi!',
-            severity: 'success',
-        });
-
-        setPassword({
-            current: '',
-            new: '',
-            confirm: '',
-        });
+        try {
+            const result = await updatePassword(user._id, {
+                currentPassword: password.current,
+                newPassword: password.new
+            });
+            if (result.success) {
+                setAlert({
+                    open: true,
+                    message: 'Şifreniz başarıyla güncellendi!',
+                    severity: 'success',
+                });
+                setPassword({
+                    current: '',
+                    new: '',
+                    confirm: '',
+                });
+            } else {
+                setAlert({
+                    open: true,
+                    message: result.message || 'Şifre güncellenirken bir hata oluştu',
+                    severity: 'error',
+                });
+            }
+        } catch (error) {
+            setAlert({
+                open: true,
+                message: 'Şifre güncellenirken bir hata oluştu',
+                severity: 'error',
+            });
+        }
     };
 
     const handleCloseAlert = () => {
         setAlert((prev) => ({ ...prev, open: false }));
     };
+
+    if (!user) {
+        return (
+            <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+                <Alert severity="warning">Ayarları görüntülemek için giriş yapmalısınız.</Alert>
+            </Container>
+        );
+    }
 
     return (
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
@@ -215,12 +282,10 @@ function Settings({ isDarkMode, toggleDarkMode }) {
                                 <Grid item xs={12}>
                                     <Button
                                         variant="contained"
-                                        startIcon={<SaveIcon />}
+                                        color="primary"
                                         onClick={handlePasswordUpdate}
-                                        sx={{
-                                            bgcolor: '#1a237e',
-                                            '&:hover': { bgcolor: '#000051' },
-                                        }}
+                                        startIcon={<SaveIcon />}
+                                        sx={{ mt: 2 }}
                                     >
                                         Şifreyi Güncelle
                                     </Button>
@@ -230,18 +295,18 @@ function Settings({ isDarkMode, toggleDarkMode }) {
                     </Card>
                 </Grid>
 
-                {/* Görünüm ve Dil Ayarları */}
-                <Grid item xs={12}>
+                {/* Görünüm Ayarları */}
+                <Grid item xs={12} md={6}>
                     <Card elevation={3}>
                         <CardContent sx={{ p: 4 }}>
-                            <Grid container spacing={3}>
-                                <Grid item xs={12} md={6}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                                        <PaletteIcon sx={{ mr: 2, color: '#1a237e' }} />
-                                        <Typography variant="h6" sx={{ color: '#1a237e' }}>
-                                            Görünüm Ayarları
-                                        </Typography>
-                                    </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                                <PaletteIcon sx={{ mr: 2, color: '#1a237e' }} />
+                                <Typography variant="h6" sx={{ color: '#1a237e' }}>
+                                    Görünüm Ayarları
+                                </Typography>
+                            </Box>
+                            <Grid container spacing={2}>
+                                <Grid item xs={12}>
                                     <FormControlLabel
                                         control={
                                             <Switch
@@ -253,20 +318,35 @@ function Settings({ isDarkMode, toggleDarkMode }) {
                                         label="Karanlık Mod"
                                     />
                                 </Grid>
-                                <Grid item xs={12} md={6}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                                        <LanguageIcon sx={{ mr: 2, color: '#1a237e' }} />
-                                        <Typography variant="h6" sx={{ color: '#1a237e' }}>
-                                            Dil Ayarları
-                                        </Typography>
-                                    </Box>
+                            </Grid>
+                        </CardContent>
+                    </Card>
+                </Grid>
+
+                {/* Dil Ayarları */}
+                <Grid item xs={12} md={6}>
+                    <Card elevation={3}>
+                        <CardContent sx={{ p: 4 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                                <LanguageIcon sx={{ mr: 2, color: '#1a237e' }} />
+                                <Typography variant="h6" sx={{ color: '#1a237e' }}>
+                                    Dil Ayarları
+                                </Typography>
+                            </Box>
+                            <Grid container spacing={2}>
+                                <Grid item xs={12}>
                                     <TextField
                                         select
                                         fullWidth
+                                        label="Dil"
                                         value={settings.language}
-                                        onChange={(e) =>
-                                            setSettings({ ...settings, language: e.target.value })
-                                        }
+                                        onChange={(e) => {
+                                            setSettings(prev => ({
+                                                ...prev,
+                                                language: e.target.value
+                                            }));
+                                            handleSettingChange('language')(e);
+                                        }}
                                         SelectProps={{
                                             native: true,
                                         }}

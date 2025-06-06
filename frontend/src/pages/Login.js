@@ -23,9 +23,11 @@ import {
 import React, { useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { loginUser } from "../services/api";
+import { useAuth } from '../contexts/AuthContext';
 
-function Login({ updateLoginStatus }) {
+function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     Email: '',
@@ -55,20 +57,13 @@ function Login({ updateLoginStatus }) {
     e.preventDefault();
     const result = await loginUser(formData);
     if (result.success) {
-      console.log('Login response:', result.data); // Debug için
-      
-      // Kullanıcı bilgilerini sakla
-      localStorage.setItem('token', result.data.token);
-      localStorage.setItem('userInfo', JSON.stringify(result.data.user));
-      localStorage.setItem('isLoggedIn', 'true');
-      window.dispatchEvent(new Event('localStorageChange'));
-      updateLoginStatus(true, result.data.user);
-      
+      // Kullanıcı bilgilerini sakla ve context'i güncelle
+      login(result.data.user);
+
       // Kullanıcı tipine göre yönlendirme
       const userRole = result.data.user.userType || result.data.user.role || result.data.user.Rol;
-      console.log('User role from login:', userRole); // Debug için
 
-      switch(userRole?.toLowerCase()) {
+      switch (userRole?.toLowerCase()) {
         case 'patient':
         case 'hasta':
           navigate('/patient/appointments');
@@ -82,7 +77,7 @@ function Login({ updateLoginStatus }) {
           navigate('/admin/dashboard');
           break;
         default:
-          console.log('Unknown role:', userRole); // Debug için
+          console.error('Unknown role:', userRole);
           navigate('/login');
       }
     } else {

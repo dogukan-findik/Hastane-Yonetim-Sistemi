@@ -1,24 +1,39 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { Box, Container, Paper, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Link } from '@mui/material';
+import { Box, Container, Paper, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Link, Alert } from '@mui/material';
+import { getReports } from '../services/api';
 
 function Reports() {
-  const [raporlar, setRaporlar] = useState([]);
-  const [hastalar, setHastalar] = useState({});
-  const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+  const [reports, setReports] = useState([]);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get('http://localhost:5000/api/raporlar/listele');
-        setRaporlar(response.data);
-      } catch (error) {
-        console.error('Raporlar yüklenirken hata:', error);
-      }
-    };
-
-    fetchData();
+    loadReports();
   }, []);
+
+  const loadReports = async () => {
+    try {
+      setLoading(true);
+      const result = await getReports();
+      if (result.success) {
+        setReports(result.data);
+      } else {
+        setError(result.message);
+      }
+    } catch (error) {
+      setError('Raporlar yüklenirken bir hata oluştu');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Typography>Yükleniyor...</Typography>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
@@ -26,8 +41,15 @@ function Reports() {
         <Typography variant="h4" gutterBottom>
           Raporlarım
         </Typography>
+
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+
         <Box sx={{ mt: 3 }}>
-          {raporlar.length === 0 ? (
+          {reports.length === 0 ? (
             <Typography>Hiç rapor bulunamadı.</Typography>
           ) : (
             <TableContainer>
@@ -41,18 +63,18 @@ function Reports() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {raporlar.map(r => (
-                    <TableRow key={r.RaporID}>
+                  {reports.map(report => (
+                    <TableRow key={report._id}>
                       <TableCell>
-                        {r.DosyaURL
-                          ? <Link href={`http://localhost:5000${r.DosyaURL}`} target="_blank" rel="noopener">Görüntüle</Link>
+                        {report.DosyaURL
+                          ? <Link href={`http://localhost:5000${report.DosyaURL}`} target="_blank" rel="noopener">Görüntüle</Link>
                           : <span>Dosya yok</span>
                         }
                       </TableCell>
-                      <TableCell>{r.RaporIcerigi}</TableCell>
-                      <TableCell>{r.RaporTarihi && new Date(r.RaporTarihi).toLocaleDateString()}</TableCell>
+                      <TableCell>{report.RaporIcerigi}</TableCell>
+                      <TableCell>{report.RaporTarihi && new Date(report.RaporTarihi).toLocaleDateString()}</TableCell>
                       <TableCell>
-                        <pre style={{ margin: 0, fontSize: 12 }}>{r.EkVeri ? JSON.stringify(r.EkVeri, null, 2) : '-'}</pre>
+                        <pre style={{ margin: 0, fontSize: 12 }}>{report.EkVeri ? JSON.stringify(report.EkVeri, null, 2) : '-'}</pre>
                       </TableCell>
                     </TableRow>
                   ))}

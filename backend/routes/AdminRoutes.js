@@ -4,18 +4,18 @@ const router = express.Router();
 const AdminController = require("../controller/AdminController");
 
 // Yönetici ekleme
-router.post("/", AdminController.createAdmin);
+router.post("/admin", AdminController.createAdmin);
 
 // Yönetici listeleme
-router.get("/", AdminController.getAllAdmins);
+router.get("/admin", AdminController.getAllAdmins);
 
 // Tek yönetici görüntüleme
-router.get("/:id", AdminController.getAdminById);
+router.get("/admin/:id", AdminController.getAdminById);
 
 // Yönetici güncelleme
-router.put("/:id", AdminController.updateAdmin);
+router.put("/admin/:id", AdminController.updateAdmin);
 
 // Yönetici silme
-router.delete("/:id", AdminController.deleteAdmin);
+router.delete("/admin/:id", AdminController.deleteAdmin);
 
 module.exports = router;

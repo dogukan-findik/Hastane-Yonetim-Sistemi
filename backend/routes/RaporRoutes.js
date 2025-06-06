@@ -14,19 +14,19 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Rapor ekleme
-router.post("/ekle", RaporController.RaporEkle);
+router.post("/rapor", RaporController.RaporEkle);
 
 // Tüm raporları listeleme
-router.get("/listele", RaporController.RaporListele);
+router.get("/rapor", RaporController.RaporListele);
 
 // Rapor güncelleme
-router.put("/guncelle/:raporID", RaporController.RaporGuncelle);
+router.put("/rapor/:raporID", RaporController.RaporGuncelle);
 
 // Rapor silme
-router.delete("/sil/:raporID", RaporController.RaporSil);
+router.delete("/rapor/:raporID", RaporController.RaporSil);
 
-router.post('/yukle', upload.single('dosya'), RaporController.raporYukle);
-router.get('/:raporID', RaporController.raporDetay);
-router.delete('/:raporID', RaporController.raporSil);
+router.post('/rapor/yukle', upload.single('dosya'), RaporController.raporYukle);
+router.get('/rapor/:raporID', RaporController.raporDetay);
+router.delete('/rapor/:raporID', RaporController.raporSil);
 
 module.exports = router;

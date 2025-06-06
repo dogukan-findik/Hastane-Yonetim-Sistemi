@@ -1,23 +1,24 @@
 import { Add as AddIcon } from '@mui/icons-material';
 import {
-    Alert,
-    Box,
-    Button,
-    Chip,
-    Collapse,
-    Container,
-    Paper,
-    Snackbar,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Typography
+  Alert,
+  Box,
+  Button,
+  Chip,
+  Collapse,
+  Container,
+  Paper,
+  Snackbar,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { getAppointments, deleteAppointment } from '../services/api';
 
 function Appointments({ isAdminView = false }) {
   const navigate = useNavigate();
@@ -27,51 +28,39 @@ function Appointments({ isAdminView = false }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isPatient, setIsPatient] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Kullanıcı rolünü belirle
     const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
     setIsPatient(userInfo.role === 'patient');
-    
+
     // Bildirim gösterme kontrolü
     if (location.state?.showNotification) {
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
     }
-    
+
     // Randevuları yükle
     loadAppointments();
   }, [location.state]);
 
-  const loadAppointments = () => {
-    // Örnek randevu verileri - gerçek uygulamada API'den gelecek
-    const mockAppointments = [
-      {
-        id: 1,
-        Hasta: 'Ahmet Yılmaz',
-        Doktor: 'Dr. Mehmet Kaya',
-        Tarih: '2024-03-25',
-        Saat: '10:30',
-        Durum: 'Onaylandı'
-      },
-      {
-        id: 2,
-        Hasta: 'Ayşe Demir',
-        Doktor: 'Dr. Zeynep Şahin',
-        Tarih: '2024-03-26',
-        Saat: '14:00',
-        Durum: 'Beklemede'
-      },
-      {
-        id: 3,
-        Hasta: 'Ali Öztürk',
-        Doktor: 'Dr. Fatma Yıldız',
-        Tarih: '2024-03-27',
-        Saat: '09:15',
-        Durum: 'İptal Edildi'
+  const loadAppointments = async () => {
+    try {
+      setLoading(true);
+      const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      const result = await getAppointments(userInfo._id, userInfo.role);
+
+      if (result.success) {
+        setAppointments(result.data);
+      } else {
+        setError(result.message);
       }
-    ];
-    setAppointments(mockAppointments);
+    } catch (error) {
+      setError('Randevular yüklenirken bir hata oluştu');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getStatusColor = (status) => {
@@ -91,24 +80,40 @@ function Appointments({ isAdminView = false }) {
     navigate('/new-appointment');
   };
 
-  const handleCancelAppointment = (appointmentId) => {
-    // Randevu iptal etme işlemi
-    setAppointments(prev => 
-      prev.map(app => 
-        app.id === appointmentId 
-          ? { ...app, Durum: 'İptal Edildi' }
-          : app
-      )
-    );
-    setSuccess('Randevu başarıyla iptal edildi.');
+  const handleCancelAppointment = async (appointmentId) => {
+    try {
+      const result = await deleteAppointment(appointmentId);
+      if (result.success) {
+        setAppointments(prev =>
+          prev.map(app =>
+            app._id === appointmentId
+              ? { ...app, Durum: 'İptal Edildi' }
+              : app
+          )
+        );
+        setSuccess('Randevu başarıyla iptal edildi.');
+      } else {
+        setError(result.message);
+      }
+    } catch (error) {
+      setError('Randevu iptal edilirken bir hata oluştu');
+    }
   };
+
+  if (loading) {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Typography>Yükleniyor...</Typography>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Collapse in={showNotification}>
-        <Alert 
-          severity="success" 
-          sx={{ 
+        <Alert
+          severity="success"
+          sx={{
             mb: 2,
             fontSize: '1.1rem',
             '& .MuiAlert-icon': {
@@ -124,7 +129,7 @@ function Appointments({ isAdminView = false }) {
         <Typography variant="h4" component="h1">
           {isAdminView ? 'Tüm Randevular' : (isPatient ? 'Randevularım' : 'Randevular')}
         </Typography>
-        
+
         {isPatient && (
           <Button
             variant="contained"
@@ -163,11 +168,11 @@ function Appointments({ isAdminView = false }) {
           </TableHead>
           <TableBody>
             {appointments.map((appointment) => (
-              <TableRow key={appointment.id}>
-                <TableCell>{appointment.id}</TableCell>
-                {!isPatient && <TableCell>{appointment.Hasta}</TableCell>}
-                <TableCell>{appointment.Doktor}</TableCell>
-                <TableCell>{appointment.Tarih}</TableCell>
+              <TableRow key={appointment._id}>
+                <TableCell>{appointment._id}</TableCell>
+                {!isPatient && <TableCell>{appointment.Hasta?.Ad} {appointment.Hasta?.Soyad}</TableCell>}
+                <TableCell>{appointment.Doktor?.Ad} {appointment.Doktor?.Soyad}</TableCell>
+                <TableCell>{new Date(appointment.Tarih).toLocaleDateString('tr-TR')}</TableCell>
                 <TableCell>{appointment.Saat}</TableCell>
                 <TableCell>
                   <Chip
@@ -182,7 +187,7 @@ function Appointments({ isAdminView = false }) {
                       variant="outlined"
                       color="error"
                       size="small"
-                      onClick={() => handleCancelAppointment(appointment.id)}
+                      onClick={() => handleCancelAppointment(appointment._id)}
                     >
                       İptal Et
                     </Button>

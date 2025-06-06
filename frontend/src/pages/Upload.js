@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Upload as UploadIcon } from '@mui/icons-material';
 import { Box, Button, Container, Paper, Typography, TextField, Alert } from '@mui/material';
-import { uploadFile } from '../services/api';
+import { uploadReport } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 function UploadReport({ onUpload }) {
+  const { user } = useAuth();
   const [file, setFile] = useState(null);
   const [icerik, setIcerik] = useState('');
   const [ekVeri, setEkVeri] = useState('');
@@ -25,22 +27,20 @@ function UploadReport({ onUpload }) {
       return;
     }
 
+    if (!user) {
+      setUploadStatus({ success: false, message: 'Dosya yüklemek için giriş yapmalısınız' });
+      return;
+    }
+
     setIsUploading(true);
     try {
-      const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-      const formData = new FormData();
-      formData.append('dosya', file);
-      formData.append('HastaID', userInfo?.role === 'patient' ? userInfo._id : '');
-      formData.append('DoktorID', userInfo?.role === 'doctor' ? userInfo._id : '');
-      formData.append('RaporTarihi', new Date().toISOString());
-      formData.append('RaporIcerigi', icerik);
-      formData.append('EkVeri', ekVeri);
-
-      const response = await fetch('http://localhost:5000/api/raporlar/yukle', {
-        method: 'POST',
-        body: formData
+      const result = await uploadReport({
+        file,
+        icerik,
+        ekVeri: ekVeri ? JSON.parse(ekVeri) : {},
+        userId: user._id,
+        userRole: user.role
       });
-      const result = await response.json();
 
       if (result.success) {
         setUploadStatus({ success: true, message: 'Dosya başarıyla yüklendi' });
@@ -58,13 +58,21 @@ function UploadReport({ onUpload }) {
     }
   };
 
+  if (!user) {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Alert severity="warning">Dosya yüklemek için giriş yapmalısınız.</Alert>
+      </Container>
+    );
+  }
+
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Paper sx={{ p: 3 }}>
         <Typography variant="h4" gutterBottom>
           Dosya Yükleme
         </Typography>
-        
+
         {uploadStatus.message && (
           <Alert severity={uploadStatus.success ? "success" : "error"} sx={{ mb: 2 }}>
             {uploadStatus.message}
@@ -117,6 +125,7 @@ function UploadReport({ onUpload }) {
               onChange={(e) => setEkVeri(e.target.value)}
               placeholder="Ek JSON veri (opsiyonel)"
               sx={{ mb: 2 }}
+              helperText="Geçerli bir JSON formatında girin"
             />
 
             <Button

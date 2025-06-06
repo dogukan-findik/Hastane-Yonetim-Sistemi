@@ -4,15 +4,15 @@ const router = express.Router();
 const doktorController = require("../controller/DoktorController");
 
 // Doktor ekleme
-router.post("/ekle", doktorController.addDoctor);
+router.post("/doktor", doktorController.addDoctor);
 
 // Tüm doktorları listeleme
-router.get("/listele", doktorController.getDoctors);
+router.get("/doktor", doktorController.getDoctors);
 
 // Doktor güncelleme
-router.put("/guncelle/:doktorID", doktorController.updateDoctor);
+router.put("/doktor/:doktorID", doktorController.updateDoctor);
 
 // Doktor silme
-router.delete("/sil/:doktorID", doktorController.deleteDoctor);
+router.delete("/doktor/:doktorID", doktorController.deleteDoctor);
 
 module.exports = router;

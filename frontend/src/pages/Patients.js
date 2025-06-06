@@ -1,72 +1,86 @@
 import { Add as AddIcon } from '@mui/icons-material';
 import {
-    Alert,
-    Box,
-    Button,
-    Collapse,
-    Container,
-    Paper,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Typography,
+  Alert,
+  Box,
+  Button,
+  Collapse,
+  Container,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
 } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
+import { getPatients, deletePatient } from '../services/api';
 
 function Patients() {
   const location = useLocation();
-  const [hastalar, setHastalar] = useState([]);
+  const navigate = useNavigate();
+  const [patients, setPatients] = useState([]);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
   const [showNotification, setShowNotification] = useState(false);
 
   useEffect(() => {
-    // Bildirim gösterme kontrolü
     if (location.state?.showNotification) {
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
     }
-    
-    // Hastaları yükle
     loadPatients();
   }, [location.state]);
 
-  const loadPatients = () => {
-    // Örnek hasta verileri - gerçek uygulamada API'den gelecek
-    const mockPatients = [
-      {
-        _id: 1,
-        Ad: 'Ahmet',
-        Soyad: 'Yılmaz',
-        DogumTarihi: '1985-03-15',
-        TelefonNumarasi: '0532 123 45 67'
-      },
-      {
-        _id: 2,
-        Ad: 'Ayşe',
-        Soyad: 'Demir',
-        DogumTarihi: '1990-07-22',
-        TelefonNumarasi: '0545 987 65 43'
-      },
-      {
-        _id: 3,
-        Ad: 'Mehmet',
-        Soyad: 'Kaya',
-        DogumTarihi: '1978-12-08',
-        TelefonNumarasi: '0533 456 78 90'
+  const loadPatients = async () => {
+    try {
+      setLoading(true);
+      const result = await getPatients();
+      if (result.success) {
+        setPatients(result.data);
+      } else {
+        setError(result.message);
       }
-    ];
-    setHastalar(mockPatients);
+    } catch (error) {
+      setError('Hastalar yüklenirken bir hata oluştu');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleDelete = async (patientId) => {
+    if (window.confirm('Bu hastayı silmek istediğinizden emin misiniz?')) {
+      try {
+        const result = await deletePatient(patientId);
+        if (result.success) {
+          setPatients(patients.filter(p => p._id !== patientId));
+          setShowNotification(true);
+          setTimeout(() => setShowNotification(false), 5000);
+        } else {
+          setError(result.message);
+        }
+      } catch (error) {
+        setError('Hasta silinirken bir hata oluştu');
+      }
+    }
+  };
+
+  if (loading) {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Typography>Yükleniyor...</Typography>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Collapse in={showNotification}>
-        <Alert 
-          severity="success" 
-          sx={{ 
+        <Alert
+          severity="success"
+          sx={{
             mb: 2,
             fontSize: '1.1rem',
             '& .MuiAlert-icon': {
@@ -74,9 +88,15 @@ function Patients() {
             }
           }}
         >
-          Hasta başarıyla eklendi!
+          İşlem başarıyla tamamlandı!
         </Alert>
       </Collapse>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
         <Typography variant="h4" component="h1">
@@ -104,17 +124,25 @@ function Patients() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {hastalar.map((h) => (
-              <TableRow key={h._id}>
-                <TableCell>{h._id}</TableCell>
-                <TableCell>{h.Ad} {h.Soyad}</TableCell>
-                <TableCell>{h.DogumTarihi ? new Date(h.DogumTarihi).toLocaleDateString('tr-TR') : ''}</TableCell>
-                <TableCell>{h.TelefonNumarasi}</TableCell>
+            {patients.map((patient) => (
+              <TableRow key={patient._id}>
+                <TableCell>{patient._id}</TableCell>
+                <TableCell>{patient.Ad} {patient.Soyad}</TableCell>
+                <TableCell>{patient.DogumTarihi ? new Date(patient.DogumTarihi).toLocaleDateString('tr-TR') : ''}</TableCell>
+                <TableCell>{patient.TelefonNumarasi}</TableCell>
                 <TableCell>
-                  <Button size="small" color="primary">
+                  <Button
+                    size="small"
+                    color="primary"
+                    onClick={() => navigate(`/patient/${patient._id}`)}
+                  >
                     Düzenle
                   </Button>
-                  <Button size="small" color="error">
+                  <Button
+                    size="small"
+                    color="error"
+                    onClick={() => handleDelete(patient._id)}
+                  >
                     Sil
                   </Button>
                 </TableCell>

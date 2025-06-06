@@ -1,8 +1,6 @@
-import { Add as AddIcon } from '@mui/icons-material';
 import {
   Box,
   Button,
-  Chip,
   Container,
   Paper,
   Table,
@@ -12,39 +10,54 @@ import {
   TableHead,
   TableRow,
   Typography,
+  Alert,
+  Snackbar
 } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getDoctors } from '../services/api';
 
 function Doctors() {
   const navigate = useNavigate();
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isPatient, setIsPatient] = useState(true);
-
-  // Örnek doktor verileri
-  const doctors = [
-    { id: 1, name: 'Dr. Ali Öztürk', specialty: 'Kardiyoloji', status: 'Aktif', patients: 45 },
-    { id: 2, name: 'Dr. Zeynep Yıldız', specialty: 'Dahiliye', status: 'Aktif', patients: 38 },
-    { id: 3, name: 'Dr. Mustafa Demir', specialty: 'Ortopedi', status: 'İzinli', patients: 25 },
-    { id: 4, name: 'Dr. Elif Kaya', specialty: 'Göz Hastalıkları', status: 'Aktif', patients: 42 },
-  ];
+  const [doctors, setDoctors] = useState([]);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Kullanıcı rolünü belirle
-    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-    setIsAdmin(userInfo.userType === 'admin');
-    setIsPatient(userInfo.userType === 'patient');
-
-    const fetchRandevular = async () => {
-      try {
-        // const response = await axios.get(`http://localhost:5000/api/randevular/doktor/${userInfo._id}`);
-        // setRandevular(response.data);
-      } catch (error) {
-        console.error('Randevular yüklenirken hata:', error);
-      }
-    };
-    fetchRandevular();
+    loadDoctors();
   }, []);
+
+  const loadDoctors = async () => {
+    try {
+      setLoading(true);
+      const result = await getDoctors();
+      if (result.success) {
+        setDoctors(result.data);
+      } else {
+        setError(result.message);
+      }
+    } catch (error) {
+      setError('Doktorlar yüklenirken bir hata oluştu');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddDoctor = () => {
+    navigate('/add-doctor');
+  };
+
+  const handleViewDoctor = (doctorId) => {
+    navigate(`/doctor/${doctorId}`);
+  };
+
+  if (loading) {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Typography>Yükleniyor...</Typography>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
@@ -52,55 +65,51 @@ function Doctors() {
         <Typography variant="h4" component="h1">
           Doktorlar
         </Typography>
-        {isAdmin && (
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={() => navigate('/admin/new-doctor')}
-          >
-            Doktor Ekle
-          </Button>
-        )}
+        <Button
+          variant="contained"
+          onClick={handleAddDoctor}
+        >
+          Yeni Doktor Ekle
+        </Button>
       </Box>
+
+      <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError('')}>
+        <Alert severity="error" onClose={() => setError('')}>
+          {error}
+        </Alert>
+      </Snackbar>
+
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
               <TableCell>ID</TableCell>
-              <TableCell>Ad Soyad</TableCell>
-              <TableCell>Uzmanlık</TableCell>
-              <TableCell>Durum</TableCell>
-              {!isPatient && <TableCell>Hasta Sayısı</TableCell>}
-              {!isPatient && <TableCell>İşlemler</TableCell>}
+              <TableCell>Ad</TableCell>
+              <TableCell>Soyad</TableCell>
+              <TableCell>Uzmanlık Alanı</TableCell>
+              <TableCell>Çalıştığı Hastane</TableCell>
+              <TableCell>Telefon</TableCell>
+              <TableCell>İşlemler</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {doctors.map((doctor) => (
-              <TableRow key={doctor.id}>
-                <TableCell>{doctor.id}</TableCell>
-                <TableCell>{doctor.name}</TableCell>
-                <TableCell>{doctor.specialty}</TableCell>
+              <TableRow key={doctor._id}>
+                <TableCell>{doctor._id}</TableCell>
+                <TableCell>{doctor.Ad}</TableCell>
+                <TableCell>{doctor.Soyad}</TableCell>
+                <TableCell>{doctor.UzmanlikAlani}</TableCell>
+                <TableCell>{doctor.CalistigiHastane}</TableCell>
+                <TableCell>{doctor.Telefon}</TableCell>
                 <TableCell>
-                  <Chip
-                    label={doctor.status}
-                    color={doctor.status === 'Aktif' ? 'success' : 'warning'}
+                  <Button
+                    variant="outlined"
                     size="small"
-                  />
+                    onClick={() => handleViewDoctor(doctor._id)}
+                  >
+                    Detay
+                  </Button>
                 </TableCell>
-                {!isPatient && <TableCell>{doctor.patients}</TableCell>}
-                {!isPatient && (
-                  <TableCell>
-                    <Button size="small" color="primary">
-                      Düzenle
-                    </Button>
-                    {isAdmin && (
-                      <Button size="small" color="error">
-                        Sil
-                      </Button>
-                    )}
-                  </TableCell>
-                )}
               </TableRow>
             ))}
           </TableBody>

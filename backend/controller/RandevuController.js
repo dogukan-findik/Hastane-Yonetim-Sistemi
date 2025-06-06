@@ -1,38 +1,3 @@
-// utils/logger.js
-
-const chalkImport = import('chalk');
-
-const LOG_LEVELS = {
-    INFO: 'INFO',
-    WARN: 'WARN',
-    ERROR: 'ERROR',
-};
-
-const logMessage = async (level, message) => {
-    const chalk = (await chalkImport).default;
-    const timestamp = new Date().toISOString();
-    switch (level) {
-        case LOG_LEVELS.INFO:
-            console.log(chalk.blue(`[INFO] [${timestamp}] ${message}`));
-            break;
-        case LOG_LEVELS.WARN:
-            console.log(chalk.yellow(`[WARN] [${timestamp}] ${message}`));
-            break;
-        case LOG_LEVELS.ERROR:
-            console.log(chalk.red(`[ERROR] [${timestamp}] ${message}`));
-            break;
-        default:
-            console.log(chalk.white(`[LOG] [${timestamp}] ${message}`));
-            break;
-    }
-};
-
-module.exports = {
-    info: (msg) => logMessage(LOG_LEVELS.INFO, msg),
-    warn: (msg) => logMessage(LOG_LEVELS.WARN, msg),
-    error: (msg) => logMessage(LOG_LEVELS.ERROR, msg),
-};
-
 const randevuServices = require("../services/RandevuServices");
 const Randevu = require("../models/randevu");
 const logger = require('../utils/logger');

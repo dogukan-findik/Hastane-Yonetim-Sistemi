@@ -4,21 +4,21 @@ const router = express.Router();
 const randevuController = require("../controller/RandevuController");
 
 // Randevu ekleme
-router.post("/ekle", randevuController.RandevuEkle);
+router.post("/randevu", randevuController.RandevuEkle);
 
 // Tüm randevuları listeleme
-router.get("/listele", randevuController.RandevuListeleme);
+router.get("/randevu", randevuController.RandevuListeleme);
 
 // Randevu güncelleme
-router.put("/guncelle/:randevuID", randevuController.RandevuGüncelleme);
+router.put("/randevu/:randevuID", randevuController.RandevuGüncelleme);
 
 // Randevu silme
-router.delete("/sil/:randevuID", randevuController.RandevuSilme);
+router.delete("/randevu/:randevuID", randevuController.RandevuSilme);
 
 // Doktorun randevuları
-router.get('/doktor/:doktorID', randevuController.DoktorunRandevulari);
+router.get('/randevu/doktor/:doktorID', randevuController.DoktorunRandevulari);
 
 // Hastanın randevuları
-router.get('/hasta/:hastaID', randevuController.HastaninRandevulari);
+router.get('/randevu/hasta/:hastaID', randevuController.HastaninRandevulari);
 
 module.exports = router;
